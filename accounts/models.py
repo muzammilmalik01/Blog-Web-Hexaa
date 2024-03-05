@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 
 class CustomUser(AbstractUser):
     """
@@ -18,3 +19,12 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+class PremiumUser(models.Model):
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    stripe_customer_id = models.CharField(max_length=50, null=True, blank=True)
+    stripe_subscription_id = models.CharField(max_length=50, null=True, blank=True)
+    has_active_subscription = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.email

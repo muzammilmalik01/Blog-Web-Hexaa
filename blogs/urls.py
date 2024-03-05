@@ -4,6 +4,7 @@ from django.urls import path, include,re_path
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from posts.views import CreateSubscriptionView
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -25,6 +26,7 @@ urlpatterns = [
     path('tags/', include('tag.urls')), # Tags APIs
     path('posts/',include('posts.urls')), # Posts APIs
     path('newsletter/',include('newsletter.urls')), # Newsletter APIs
+    path('premium/', CreateSubscriptionView.as_view(), name = 'create-premium-account'), # Get Premium Post Subscription
 
     # Simple-JWT APIs
     path('api/token/', TokenObtainPairView.as_view(), name = 'obtain-token'),
@@ -39,6 +41,5 @@ urlpatterns = [
     # DJoser APIs
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
-
 
 ]

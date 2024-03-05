@@ -1,6 +1,7 @@
 from rest_framework import generics, views, status, permissions
 from django.core.mail import send_mail
-from accounts.models import CustomUser
+from accounts.models import CustomUser, PremiumUser
+from accounts.serializer import PremiumUserSerializer
 from .models import Like, Comment, Post, PostHistory
 from .serializer import LikeSerializer, CommentSerializer, PostSerializer, PostHistorySerializer
 from django.utils.text import slugify
@@ -9,6 +10,8 @@ from rest_framework.response import Response
 from django.db.models import Count
 from django.utils import timezone
 from .permissions import PostPermissions, CommentPermissions, LikePermissions, PostHistoryPermissions
+from django.conf import settings
+import stripe
 
 # Post Views #
 class CreatePostAPI(generics.CreateAPIView):
@@ -390,3 +393,71 @@ class SendEmailView(views.APIView):
             return Response({"message": "Email sent successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid input"}, status=status.HTTP_400_BAD_REQUEST)
+    
+# Send Mail Views End #
+        
+# Stripe Subscription Views #
+        
+ # TODO: Have to create a Unsubscribe / Cancel Subscription API.       
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+class CreateSubscriptionView(generics.CreateAPIView):
+    """
+    API view to handle creation of a new subscription for a user.
+    Each PremiumUser corresponds to a Stripe Customer with a Subscription.
+    ! Products (Premium Post) is hard coded !
+    ! Have to provide users with option to Cancel the subscription !
+    """
+    queryset = PremiumUser.objects.all()
+    serializer_class = PremiumUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        """
+        Overriding create() to create a Stripe Customer and Subscription,
+        and a corresponding PremiumUser in the database.
+        """
+        data = request.data
+        customers = stripe.Customer.list(email=request.user.email).data
+
+        if customers:  # If the customer already exists in Stripe
+            customer = customers[0]
+            customer = stripe.Customer.retrieve(customer.id, expand=['subscriptions'])
+
+            # Check if the customer already has an active subscription
+            for subscription in customer.subscriptions.data:
+                if subscription.plan.id == "price_1Oqs9jLbIWA3Cm6Ek5D2k46i" and subscription.status == 'active':
+                    return Response({'message': 'You are already subscribed to this plan'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Else Create a new subscription for the customer
+            subscription = stripe.Subscription.create(
+                customer=customer.id,
+                items=[{"price": "price_1Oqs9jLbIWA3Cm6Ek5D2k46i"}],
+            )
+
+            # Update or create the corresponding PremiumUser
+            PremiumUser.objects.update_or_create(
+                user=request.user,
+                defaults={
+                    'stripe_customer_id': customer.id,
+                    'stripe_subscription_id': subscription.id,
+                    'has_active_subscription': True,
+                }
+            )
+            return Response({'message': 'Successfully Subscribed'}, status=status.HTTP_201_CREATED)
+
+        else:  # If the customer doesn't exist in Stripe, create a new customer and subscription
+            customer = stripe.Customer.create(email=request.user.email, source=data['source'])
+            subscription = stripe.Subscription.create(
+                customer=customer.id,
+                items=[{"price": "price_1Oqs9jLbIWA3Cm6Ek5D2k46i"}],
+            )
+
+            # Create the corresponding PremiumUser
+            PremiumUser.objects.create(
+                user=request.user,
+                stripe_customer_id=customer.id,
+                stripe_subscription_id=subscription.id,
+                has_active_subscription=True,
+            )
+            return Response({'message': 'Successfully Subscribed'}, status=status.HTTP_201_CREATED)
