@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
+import stripe
 
 class CustomUser(AbstractUser):
     """
@@ -25,6 +26,18 @@ class PremiumUser(models.Model):
     stripe_customer_id = models.CharField(max_length=50, null=True, blank=True)
     stripe_subscription_id = models.CharField(max_length=50, null=True, blank=True)
     has_active_subscription = models.BooleanField(default=False)
+
+    def has_active_subsciption(self):
+        """
+        This method checks if the user has active subscription or not.
+        """
+        customer = stripe.Customer.retrieve(self.stripe_customer_id, expand=['subscriptions'])
+
+        for subscription in customer.subscriptions.data:
+            if subscription.status == 'active':
+                return True
+        
+        return False
 
     def __str__(self):
         return self.user.email

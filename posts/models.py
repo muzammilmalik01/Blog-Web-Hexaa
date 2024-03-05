@@ -29,6 +29,7 @@ class Post(models.Model):
     tags = models.ManyToManyField(Tag)
     is_featured = models.BooleanField(default = False)
     is_top_post = models.BooleanField(default = False)
+    is_premium_post = models.BooleanField(default  = False)
     views = models.PositiveBigIntegerField(default = 0, blank = True, null = True)
     posted_at = models.DateTimeField(auto_now_add=True, blank = True, null = True)
 
