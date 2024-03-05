@@ -17,7 +17,7 @@ import stripe
 class CreatePostAPI(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [PostPermissions]
+    # permission_classes = [PostPermissions]
 
     def perform_create(self, serializer):
         """
@@ -43,7 +43,7 @@ class ListAllPostsAPI(generics.ListAPIView):
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now())
+    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
     serializer_class = PostSerializer
     # permission_classes = [PostPermissions]
 
@@ -53,7 +53,7 @@ class DetailPostAPI(generics.RetrieveUpdateDestroyAPIView):
 
     ! Time check not implemented yet !
     """
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(is_premium_post = False)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -80,7 +80,7 @@ class SlugPostAPI(generics.RetrieveAPIView):
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now())
+    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
     lookup_field = 'post_slug'
@@ -122,7 +122,7 @@ class GetFeaturedPosts(generics.ListAPIView):
     
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_featured = True)
+    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_featured = True, is_premium_post = False)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -132,7 +132,7 @@ class GetTopPosts(generics.ListAPIView):
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_top_post = True).order_by('-posted_at')
+    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_top_post = True, is_premium_post = False).order_by('-posted_at')
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -142,7 +142,7 @@ class GetPopularPosts(generics.ListAPIView):
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now()).annotate(total_likes=Count('likes')).annotate(total_comments=Count('comments')).order_by('-total_likes', '-total_comments')
+    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False).annotate(total_likes=Count('likes')).annotate(total_comments=Count('comments')).order_by('-total_likes', '-total_comments')
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -155,7 +155,7 @@ class GetTrendingPosts(generics.ListAPIView):
     * Scheduling enabled *
     """
     serializer_class = PostSerializer
-    queryset = Post.objects.filter(posted_at__lte=timezone.now())
+    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
     permission_classes = [PostPermissions]
     def get_queryset(self):
         queryset = super().get_queryset()
