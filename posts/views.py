@@ -14,6 +14,15 @@ from django.conf import settings
 import stripe
 
 # Post Views #
+class ScheduledPostsMixin:
+    def get_queryset(self):
+        """
+        This method filters posts based on scheduled time and non-premium post.
+        * Applied at all Post View * 
+        * Tested all views - working *
+        ! Not implmented at Detail View 1
+        """
+        return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False)
 class CreatePostAPI(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -35,7 +44,7 @@ class CreatePostAPI(generics.CreateAPIView):
         else: 
             serializer.save() # else, simply save it.
 
-class ListAllPostsAPI(generics.ListAPIView):
+class ListAllPostsAPI(ScheduledPostsMixin,generics.ListAPIView):
     """
     List view using Generics.
 
@@ -43,8 +52,9 @@ class ListAllPostsAPI(generics.ListAPIView):
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
+    # queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
     serializer_class = PostSerializer
+    queryset = Post.objects.all()
     # permission_classes = [PostPermissions]
 
 class DetailPostAPI(generics.RetrieveUpdateDestroyAPIView):
@@ -72,7 +82,7 @@ class DetailPostAPI(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance) # Serializing the data.
         return Response(serializer.data) # Returning the object.
         
-class SlugPostAPI(generics.RetrieveAPIView):
+class SlugPostAPI(ScheduledPostsMixin,generics.RetrieveAPIView):
     """
     GET View using post_slug instead for PK.
 
@@ -80,7 +90,7 @@ class SlugPostAPI(generics.RetrieveAPIView):
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
     lookup_field = 'post_slug'
@@ -116,37 +126,37 @@ class SlugPostAPI(generics.RetrieveAPIView):
         serializer = self.get_serializer(instance) # Serializing the data.
         return Response(serializer.data) # Returning the object.
     
-class GetFeaturedPosts(generics.ListAPIView):
+class GetFeaturedPosts(ScheduledPostsMixin,generics.ListAPIView):
     """
     Getting all Featured posts by field 'is_featured' = True.
     
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_featured = True, is_premium_post = False)
+    queryset = Post.objects.filter(is_featured = True)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetTopPosts(generics.ListAPIView):
+class GetTopPosts(ScheduledPostsMixin,generics.ListAPIView):
     """
     Getting all LATEST Published Top Posts by field 'is_top_post' = True.
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_top_post = True, is_premium_post = False).order_by('-posted_at')
+    queryset = Post.objects.filter(is_top_post = True).order_by('-posted_at')
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetPopularPosts(generics.ListAPIView):
+class GetPopularPosts(ScheduledPostsMixin,generics.ListAPIView):
     """
     Getting all Published Popular Posts by Highest Likes and Highest Comments.
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False).annotate(total_likes=Count('likes')).annotate(total_comments=Count('comments')).order_by('-total_likes', '-total_comments')
+    queryset = Post.objects.annotate(total_likes=Count('likes')).annotate(total_comments=Count('comments')).order_by('-total_likes', '-total_comments')
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetTrendingPosts(generics.ListAPIView):
+class GetTrendingPosts(ScheduledPostsMixin,generics.ListAPIView):
     """
     This view, calls 'get_eng_score' to calculate eng_score for all posts.
 
@@ -155,7 +165,7 @@ class GetTrendingPosts(generics.ListAPIView):
     * Scheduling enabled *
     """
     serializer_class = PostSerializer
-    queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
+    queryset = Post.objects.all()
     permission_classes = [PostPermissions]
     def get_queryset(self):
         queryset = super().get_queryset()

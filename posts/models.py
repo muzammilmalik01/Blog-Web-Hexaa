@@ -31,7 +31,7 @@ class Post(models.Model):
     is_top_post = models.BooleanField(default = False)
     is_premium_post = models.BooleanField(default  = False)
     views = models.PositiveBigIntegerField(default = 0, blank = True, null = True)
-    posted_at = models.DateTimeField(auto_now_add=True, blank = True, null = True)
+    posted_at = models.DateTimeField(blank = True, null = True)
 
     def __str__(self) -> str:
         return f'{self.post_title} by {self.author}'
@@ -61,6 +61,11 @@ class Post(models.Model):
         # If Days Difference is 0, it will automatically return 0, so ZeroDivisionError is not raise.
         eng_score = (total_views * view_weight) + (total_likes * like_weight) + (total_comments * comment_weight) + (date_weight/days_difference if days_difference else 0)
         return eng_score 
+
+    def save(self, *args, **kwargs):
+        if not self.posted_at:
+            self.posted_at = timezone.now()
+        super().save(*args, **kwargs)
 
 class Comment(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
