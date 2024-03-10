@@ -27,7 +27,7 @@ class PremiumUser(models.Model):
     stripe_subscription_id = models.CharField(max_length=50, null=True, blank=True)
     has_active_subscription = models.BooleanField(default=False)
 
-    def has_active_subsciption(self):
+    def has_active_subscription(self):
         """
         This method checks if the user has active subscription or not.
         """

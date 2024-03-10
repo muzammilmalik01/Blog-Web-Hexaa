@@ -14,15 +14,38 @@ from django.conf import settings
 import stripe
 
 # Post Views #
-class ScheduledPostsMixin:
+class ScheduledPostPremiumUserMixin: # Implementing DRY.
     def get_queryset(self):
         """
         This method filters posts based on scheduled time and non-premium post.
         * Applied at all Post View * 
-        * Tested all views - working *
-        ! Not implmented at Detail View 1
+        * Tested on all views - working *
+        * Working on Lists Views and Detail Views  *
+
+        GET LIST:
+            - UnAuthenticated Anonymous GET List Request -> All posts - Premium Posts
+            - Authenticated NON - PREM User GET List Request -> All posts - Premium Posts
+            - Authenticated PREM User GET List Request -> All posts + Premium Posts
+        
+        GET DETAILED POST:
+            - UnAuthenticated Anonymous GET Detail Request -> Returns NO Premium Post
+            - Authenticated NON - PREM User GET Detail Request -> Returns NO Premium Post
+            - Authenticated PREM User GET List Request -> Returns Premium Post
         """
-        return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False)
+        user = self.request.user
+
+        if user.is_anonymous: # Checking for anonymous (Unauthenticated Read-Only) requets.
+            return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False)
+
+        # The request if from some authenticated user so, check if the user if premium user or not.
+        premium_user = PremiumUser.objects.filter(user=user).first()
+
+        # If the user is Authenticated but not Premium User or does not have premium subscription - No Premium Posts.
+        if not premium_user or not premium_user.has_active_subscription():
+            return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False)
+
+        # If the user is a premium user and has an active subscription, return all posts
+        return super().get_queryset().filter(posted_at__lte=timezone.now())
 class CreatePostAPI(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -44,26 +67,27 @@ class CreatePostAPI(generics.CreateAPIView):
         else: 
             serializer.save() # else, simply save it.
 
-class ListAllPostsAPI(ScheduledPostsMixin,generics.ListAPIView):
+class ListAllPostsAPI(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     """
     List view using Generics.
 
     Gets all Published posts. (Implementation of content scheduling)
 
     * Scheduling enabled *
+    * Premium Posts Enabled *
     """
-    # queryset = Post.objects.filter(posted_at__lte=timezone.now(), is_premium_post = False)
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    # permission_classes = [PostPermissions]
+    permission_classes = [PostPermissions]
 
-class DetailPostAPI(generics.RetrieveUpdateDestroyAPIView):
+class DetailPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveUpdateDestroyAPIView):
     """
     Detail (GET, PUT, POST, DELETE) view using Generics with PK (id).
 
     ! Time check not implemented yet !
     """
-    queryset = Post.objects.filter(is_premium_post = False)
+    # queryset = Post.objects.filter(is_premium_post = False)
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -76,13 +100,19 @@ class DetailPostAPI(generics.RetrieveUpdateDestroyAPIView):
         ! BUG: Users can simply perform refresh the window to increase the views count !
         * How to Fix: Use Sessions to keep track of viewed Posts or Track the user's view count using IP Address. * 
         """
-        instance = self.get_object() # Getting the instance of the object. 
+        instance = self.get_object() # Getting the instance of the object.
+        if instance.views is None:
+            instance.views = 1 
+            instance.save(update_fields=['views']) # Updating the value in the database.
+            serializer = self.get_serializer(instance) # Serializing the data.
+            return Response(serializer.data) # Returning the object.
+        
         instance.views += 1 # Incrementing the view.
         instance.save(update_fields=['views']) # Updating the value in the database.
         serializer = self.get_serializer(instance) # Serializing the data.
         return Response(serializer.data) # Returning the object.
         
-class SlugPostAPI(ScheduledPostsMixin,generics.RetrieveAPIView):
+class SlugPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveAPIView):
     """
     GET View using post_slug instead for PK.
 
@@ -126,7 +156,7 @@ class SlugPostAPI(ScheduledPostsMixin,generics.RetrieveAPIView):
         serializer = self.get_serializer(instance) # Serializing the data.
         return Response(serializer.data) # Returning the object.
     
-class GetFeaturedPosts(ScheduledPostsMixin,generics.ListAPIView):
+class GetFeaturedPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     """
     Getting all Featured posts by field 'is_featured' = True.
     
@@ -136,7 +166,7 @@ class GetFeaturedPosts(ScheduledPostsMixin,generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetTopPosts(ScheduledPostsMixin,generics.ListAPIView):
+class GetTopPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     """
     Getting all LATEST Published Top Posts by field 'is_top_post' = True.
 
@@ -146,7 +176,7 @@ class GetTopPosts(ScheduledPostsMixin,generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetPopularPosts(ScheduledPostsMixin,generics.ListAPIView):
+class GetPopularPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     """
     Getting all Published Popular Posts by Highest Likes and Highest Comments.
 
@@ -156,7 +186,7 @@ class GetPopularPosts(ScheduledPostsMixin,generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetTrendingPosts(ScheduledPostsMixin,generics.ListAPIView):
+class GetTrendingPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     """
     This view, calls 'get_eng_score' to calculate eng_score for all posts.
 
