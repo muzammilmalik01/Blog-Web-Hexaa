@@ -7,6 +7,7 @@ from .serializer import LikeSerializer, CommentSerializer, PostSerializer, PostH
 from django.utils.text import slugify
 from django.http import Http404
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Count
 from django.utils import timezone
 from .permissions import PostPermissions, CommentPermissions, LikePermissions, PostHistoryPermissions
@@ -46,6 +47,26 @@ class ScheduledPostPremiumUserMixin: # Implementing DRY.
 
         # If the user is a premium user and has an active subscription, return all posts
         return super().get_queryset().filter(posted_at__lte=timezone.now())
+
+class PremiumPostMixin:
+    def get_queryset(self):
+        """
+        This Mixin checks if the user is premium of not, and the returns Premium Posts accordingly.
+        """
+        user = self.request.user
+
+        if user.is_anonymous: # Checking for anonymous (Unauthenticated Read-Only) requets.
+            raise PermissionDenied('Permission Denied - Not Premium User')
+
+        # The request if from some authenticated user so, check if the user if premium user or not.
+        premium_user = PremiumUser.objects.filter(user=user).first()
+
+        # If the user is Authenticated but not Premium User or does not have premium subscription - No Premium Posts.
+        if not premium_user or not premium_user.has_active_subscription():
+            raise PermissionDenied('Permission Denied - Not Premium User')
+
+        # If the user is a premium user and has an active subscription, return all posts
+        return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=True)
 class CreatePostAPI(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -501,3 +522,10 @@ class CreateSubscriptionView(generics.CreateAPIView):
                 has_active_subscription=True,
             )
             return Response({'message': 'Successfully Subscribed'}, status=status.HTTP_201_CREATED)
+        
+class PremiumPostsList(PremiumPostMixin,generics.ListAPIView):
+    """
+    This view returns list of Premium Posts to the Premium Users.
+    """
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer

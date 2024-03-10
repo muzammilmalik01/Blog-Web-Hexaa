@@ -14,6 +14,7 @@ urlpatterns = [
     path('top/', views.GetTopPosts.as_view(), name = 'top-posts'), # List of all latest Top Posts. (GET)
     path('popular/', views.GetPopularPosts.as_view(), name = 'popular-posts'), # List of all latest Top Posts. (GET)
     path('trending/', views.GetTrendingPosts.as_view(), name = 'trending-posts'), # List of all latest Top Posts. (GET)
+    path('premium/', views.PremiumPostsList.as_view(), name = 'premium-post'), # Lists of all Premium posts for all Premium Users.
 
 
     # Comment URLs #
