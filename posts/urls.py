@@ -36,24 +36,3 @@ urlpatterns = [
     # Contact Form #
     path('contact/', views.SendEmailView.as_view(), name = 'contact-form')
 ]
-
-# * NEW TODOS * #
-
-"""
-
-TODO: 1. Implement Views on Blog Posts. (Done)
-TODO: 2. Add TimeDate Field in Post Model. (Done)
-TODO: 3. Create some logic / algo for Popular and Trending Posts.(Featured and Top Post (Done), Popular (Done), Trending(Done))
-TODO: 4. Implement Content Scheduling. (Done)
-TODO: 5. Implement version history. (Done)
-TODO: 6. WYSIWYG Editor. (can be implemented in Admin Panel.)
-
-TODO: 7. Permissions (All Done)
-TODO: 8. Create Collection of APIs in Postman. (Majorly Done, will have to add according to requirements)
-TODO: 9. Write Tests for APIs. (Do later, this task not given yet)
-TODO 10. Implement Newsletter. (Done)
-TODO 11. Found a bug, with data/time field. Cannot add date/time manually due to auto_add_on. (Start from here)
-        - Have to fix this bug first, else scheduling won't be working.
-TODO 12. Make new APIs / Views for Premium Users. (Check if I can make changes at basic views.)
-
-"""
