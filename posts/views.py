@@ -13,9 +13,11 @@ from django.utils import timezone
 from .permissions import PostPermissions, CommentPermissions, LikePermissions, PostHistoryPermissions
 from django.conf import settings
 import stripe
+from rest_framework.pagination import PageNumberPagination
 
 # Post Views #
 class ScheduledPostPremiumUserMixin: # Implementing DRY.
+    
     def get_queryset(self):
         """
         This method filters posts based on scheduled time and non-premium post.
@@ -67,6 +69,9 @@ class PremiumPostMixin:
 
         # If the user is a premium user and has an active subscription, return all posts
         return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=True)
+
+class PaginationMixin:
+    pagination_class = PageNumberPagination
 class CreatePostAPI(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -88,7 +93,7 @@ class CreatePostAPI(generics.CreateAPIView):
         else: 
             serializer.save() # else, simply save it.
 
-class ListAllPostsAPI(ScheduledPostPremiumUserMixin,generics.ListAPIView):
+class ListAllPostsAPI(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPIView):
     """
     List view using Generics.
 
@@ -177,7 +182,7 @@ class SlugPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveAPIView):
         serializer = self.get_serializer(instance) # Serializing the data.
         return Response(serializer.data) # Returning the object.
     
-class GetFeaturedPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
+class GetFeaturedPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPIView):
     """
     Getting all Featured posts by field 'is_featured' = True.
     
@@ -187,7 +192,7 @@ class GetFeaturedPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetTopPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
+class GetTopPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPIView):
     """
     Getting all LATEST Published Top Posts by field 'is_top_post' = True.
 
@@ -197,7 +202,7 @@ class GetTopPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetPopularPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
+class GetPopularPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPIView):
     """
     Getting all Published Popular Posts by Highest Likes and Highest Comments.
 
@@ -207,7 +212,7 @@ class GetPopularPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
-class GetTrendingPosts(ScheduledPostPremiumUserMixin,generics.ListAPIView):
+class GetTrendingPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPIView):
     """
     This view, calls 'get_eng_score' to calculate eng_score for all posts.
 
@@ -523,7 +528,7 @@ class CreateSubscriptionView(generics.CreateAPIView):
             )
             return Response({'message': 'Successfully Subscribed'}, status=status.HTTP_201_CREATED)
         
-class PremiumPostsList(PremiumPostMixin,generics.ListAPIView):
+class PremiumPostsList(PremiumPostMixin,PaginationMixin,generics.ListAPIView):
     """
     This view returns list of Premium Posts to the Premium Users.
     """

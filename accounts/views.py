@@ -3,6 +3,7 @@ from .models import CustomUser
 from .serializer import CustomUserSerializer
 from rest_framework import generics
 from django.contrib.auth.hashers import make_password
+from rest_framework.pagination import PageNumberPagination
 
 
 class AllAccountsListAPI(generics.ListAPIView):
@@ -11,6 +12,7 @@ class AllAccountsListAPI(generics.ListAPIView):
     """
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    pagination_class = PageNumberPagination
 
 class CreateAccountAPI(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
