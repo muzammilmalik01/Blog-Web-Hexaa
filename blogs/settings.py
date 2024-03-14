@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'blogs.urls'
@@ -142,8 +144,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2  # Number of objects per page
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'PAGE_SIZE': 10  # Number of objects per page
 }
 
 
@@ -202,3 +204,6 @@ EMAIL_USE_TLS = True
 #! Stripe Keys #
 STRIPE_PUBLIC_KEY = 'pk_test_51OqrmrLbIWA3Cm6EUlep55uU6A3DDyydbTr1xWcUNEjIC6G0gE0JQCMllEt1XgaGqetUd09PxFMay1gLy0G1ARvV00g1rTRxY4'
 STRIPE_SECRET_KEY = 'sk_test_51OqrmrLbIWA3Cm6EYV1nxcUneeCOL2Zh0XAW1AbevXjrJ52yVSoGa7OoU27fsssJHnf3B0cCSVfkiQKtuXlsTpkT00H0NqVxZY'
+
+# To allow all origins
+CORS_ALLOW_ALL_ORIGINS = True
