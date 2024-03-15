@@ -22,6 +22,7 @@ urlpatterns = [
     path('comment/add/', views.CreateComment.as_view(), name = 'add-comment'), # Create a new comment. (POST)
     path('comment/<int:pk>/', views.DetailComment.as_view(), name = 'detail-comment'), # Create a new comment. (POST)
     path('comment/post/<int:post>', views.GetPostComments.as_view(), name = 'post-comments'),
+    path('comment/post/<str:slug>', views.GetPostCommentsbySlug.as_view(), name = 'post-comments'),
 
     # Like URLs #
     path('like/all/', views.ListAllLikes.as_view(), name = 'list-all-likes'), # List all likes. (GET)

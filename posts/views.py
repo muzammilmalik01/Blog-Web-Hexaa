@@ -180,7 +180,20 @@ class SlugPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveAPIView):
         instance.views += 1 # Incrementing the view.
         instance.save(update_fields=['views']) # Updating the value in the database.
         serializer = self.get_serializer(instance) # Serializing the data.
-        return Response(serializer.data) # Returning the object.
+
+         # Get the next and previous posts
+        next_post = Post.objects.filter(id__gt=instance.id).order_by('id').first()
+        previous_post = Post.objects.filter(id__lt=instance.id).order_by('-id').first()
+
+        # Add the post_slug of the next and previous posts to the response
+        # ! Not thoughrouly tested - Only works for Slug Post View. !
+        response = serializer.data
+        response['next_post_slug'] = next_post.post_slug if next_post else None
+        response['next_post_id'] = next_post.id if next_post else None
+        response['previous_post_slug'] = previous_post.post_slug if previous_post else None
+
+
+        return Response(response) # Returning the object.
     
 class GetFeaturedPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPIView):
     """
@@ -299,6 +312,46 @@ class GetPostComments(generics.ListAPIView):
         """
         post_id = self.kwargs.get('post')
         post_obj = Post.objects.get(id=post_id)
+        queryset = self.queryset.filter(post=post_obj)
+
+        if not queryset.exists():
+            raise Http404("No comments found for this post.")
+
+        return queryset
+
+
+class GetPostCommentsbySlug(generics.ListAPIView):
+    """
+    A view to retrieve comments for a specific post using Slug.
+
+    This view returns a list of comments associated with a specific post.
+    The comments are serialized using the CommentSerializer class.
+
+    Attributes:
+        serializer_class (CommentSerializer): The serializer class used to serialize the comments.
+        queryset (QuerySet): The queryset used to retrieve the comments.
+
+    Permissions: 
+        Comment Permissions.
+    ! Bug: Does not return exact number of Comments as number of Replies is not included.
+    """
+
+    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
+    # permission_classes = [CommentPermissions]
+
+    def get_queryset(self):
+        """
+        Retrieves the comments for the specified post.
+
+        Returns:
+            QuerySet: The queryset containing the comments for the specified post.
+
+        Raises:
+            Http404: If no comments are found for the specified post.
+        """
+        slug = self.kwargs.get('slug')
+        post_obj = Post.objects.get(post_slug=slug)
         queryset = self.queryset.filter(post=post_obj)
 
         if not queryset.exists():

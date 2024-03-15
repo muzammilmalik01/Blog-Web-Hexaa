@@ -52,6 +52,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     total_likes = serializers.SerializerMethodField()
     total_replies = serializers.SerializerMethodField()
+    author = serializers.PrimaryKeyRelatedField(queryset = CustomUser.objects.all())
 
     class Meta:
         model = Comment
@@ -105,6 +106,17 @@ class CommentSerializer(serializers.ModelSerializer):
             raise ValidationError('Post has not been published yet.')
 
         return data
+
+    def to_representation(self, instance):
+        """
+        Overrid this function to show:
+            - Author = Author.username
+            - Category = Category.title
+        Have to add Tags as title. Not added yet.
+        """
+        representation = super().to_representation(instance)
+        representation['author'] = instance.author.username
+        return representation
         
 class PostSerializer(serializers.ModelSerializer):
     """
