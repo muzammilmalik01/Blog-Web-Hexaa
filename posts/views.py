@@ -14,6 +14,7 @@ from .permissions import PostPermissions, CommentPermissions, LikePermissions, P
 from django.conf import settings
 import stripe
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
 
 # Post Views #
 class ScheduledPostPremiumUserMixin: # Implementing DRY.
@@ -38,17 +39,17 @@ class ScheduledPostPremiumUserMixin: # Implementing DRY.
         user = self.request.user
 
         if user.is_anonymous: # Checking for anonymous (Unauthenticated Read-Only) requets.
-            return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False)
+            return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False).order_by('-posted_at')
 
         # The request if from some authenticated user so, check if the user if premium user or not.
         premium_user = PremiumUser.objects.filter(user=user).first()
 
         # If the user is Authenticated but not Premium User or does not have premium subscription - No Premium Posts.
         if not premium_user or not premium_user.has_active_subscription():
-            return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False)
+            return super().get_queryset().filter(posted_at__lte=timezone.now(), is_premium_post=False).order_by('-posted_at')
 
         # If the user is a premium user and has an active subscription, return all posts
-        return super().get_queryset().filter(posted_at__lte=timezone.now())
+        return super().get_queryset().filter(posted_at__lte=timezone.now()).order_by('-posted_at')
 
 class PremiumPostMixin:
     def get_queryset(self):
@@ -103,7 +104,7 @@ class ListAllPostsAPI(ScheduledPostPremiumUserMixin,PaginationMixin,generics.Lis
     * Premium Posts Enabled *
     """
     serializer_class = PostSerializer
-    queryset = Post.objects.all().order_by('-posted_at')
+    queryset = Post.objects.all()
     permission_classes = [PostPermissions]
 
 class DetailPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveUpdateDestroyAPIView):
@@ -187,22 +188,25 @@ class SlugPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveAPIView):
         post_type = request.GET.get('type')
 
         if post_type == 'featured':
-            queryset = queryset.filter(is_featured = True).order_by('id')
+            queryset = queryset.filter(is_featured = True)
         elif post_type == 'top':
-            queryset = queryset.filter(is_top_post = True).order_by('id')
+            queryset = queryset.filter(is_top_post = True)
+        else:
+            queryset = self.get_queryset()
         
-
-         # Get the next and previous posts
-        next_post = queryset.filter(id__gt=instance.id).order_by('id').first()
-        previous_post = queryset.filter(id__lt=instance.id).order_by('-id').first()
-
+        # Get the next and previous posts
+        # * This next_post and previous_post use a unique method to calculate posts.
+        # * This method fixes a bug where posts with same date and time used to skip in next and previous post.
+        next_post = queryset.filter(Q(posted_at__lt=instance.posted_at) | (Q(posted_at=instance.posted_at) & Q(id__gt=instance.id))).order_by('-posted_at', 'id').first()
+        previous_post = queryset.filter(Q(posted_at__gt=instance.posted_at) | (Q(posted_at=instance.posted_at) & Q(id__lt=instance.id))).order_by('posted_at', '-id').first()
         # Add the post_slug of the next and previous posts to the response
-        # ! Not thoughrouly tested - Only works for Slug Post View. !
+        
+        # ! Working only for All, Featured and Top posts !
+        # ! NOT working for Trending, Popular Posts ! 
+
         response = serializer.data
         response['next_post_slug'] = next_post.post_slug if next_post else None
-        response['next_post_id'] = next_post.id if next_post else None
         response['previous_post_slug'] = previous_post.post_slug if previous_post else None
-
 
         return Response(response) # Returning the object.
     
@@ -212,7 +216,7 @@ class GetFeaturedPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.Li
     
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(is_featured = True).order_by('id')
+    queryset = Post.objects.filter(is_featured = True)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -222,7 +226,7 @@ class GetTopPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPI
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(is_top_post = True).order_by('id')
+    queryset = Post.objects.filter(is_top_post = True)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
