@@ -103,7 +103,7 @@ class ListAllPostsAPI(ScheduledPostPremiumUserMixin,PaginationMixin,generics.Lis
     * Premium Posts Enabled *
     """
     serializer_class = PostSerializer
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().order_by('-posted_at')
     permission_classes = [PostPermissions]
 
 class DetailPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveUpdateDestroyAPIView):
@@ -181,9 +181,20 @@ class SlugPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveAPIView):
         instance.save(update_fields=['views']) # Updating the value in the database.
         serializer = self.get_serializer(instance) # Serializing the data.
 
+        # Get the queryset that excludes premium posts
+        queryset = self.get_queryset()
+
+        post_type = request.GET.get('type')
+
+        if post_type == 'featured':
+            queryset = queryset.filter(is_featured = True).order_by('id')
+        elif post_type == 'top':
+            queryset = queryset.filter(is_top_post = True).order_by('id')
+        
+
          # Get the next and previous posts
-        next_post = Post.objects.filter(id__gt=instance.id).order_by('id').first()
-        previous_post = Post.objects.filter(id__lt=instance.id).order_by('-id').first()
+        next_post = queryset.filter(id__gt=instance.id).order_by('id').first()
+        previous_post = queryset.filter(id__lt=instance.id).order_by('-id').first()
 
         # Add the post_slug of the next and previous posts to the response
         # ! Not thoughrouly tested - Only works for Slug Post View. !
@@ -201,7 +212,7 @@ class GetFeaturedPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.Li
     
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(is_featured = True)
+    queryset = Post.objects.filter(is_featured = True).order_by('id')
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -211,7 +222,7 @@ class GetTopPosts(ScheduledPostPremiumUserMixin,PaginationMixin,generics.ListAPI
 
     * Scheduling enabled *
     """
-    queryset = Post.objects.filter(is_top_post = True).order_by('-posted_at')
+    queryset = Post.objects.filter(is_top_post = True).order_by('id')
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
 
@@ -338,6 +349,7 @@ class GetPostCommentsbySlug(generics.ListAPIView):
 
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
+    pagination_class = None
     # permission_classes = [CommentPermissions]
 
     def get_queryset(self):
