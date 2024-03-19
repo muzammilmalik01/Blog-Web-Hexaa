@@ -371,7 +371,7 @@ class GetPostCommentsbySlug(generics.ListAPIView):
         queryset = self.queryset.filter(post=post_obj)
 
         if not queryset.exists():
-            raise Http404("No comments found for this post.")
+            raise Http404(f"No comments found for this post {post_obj.id}.")
 
         return queryset
 

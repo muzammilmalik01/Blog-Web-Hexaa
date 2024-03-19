@@ -195,3 +195,4 @@ STRIPE_SECRET_KEY = 'sk_test_51OqrmrLbIWA3Cm6EYV1nxcUneeCOL2Zh0XAW1AbevXjrJ52yVS
 
 # To allow all origins
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = ['*']
