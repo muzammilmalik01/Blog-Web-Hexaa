@@ -139,6 +139,7 @@ class PostSerializer(serializers.ModelSerializer):
     eng_score  = serializers.SerializerMethodField()
     author = serializers.PrimaryKeyRelatedField(queryset = CustomUser.objects.all())
     category = serializers.PrimaryKeyRelatedField(queryset = Category.objects.all())
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -187,6 +188,9 @@ class PostSerializer(serializers.ModelSerializer):
     #         # If depth is 1, exclude related User fields
     #         data.pop('author')
     #     return data
+
+    def get_tags(self,obj):
+        return [tag.title for tag in obj.tags.all()]
 
     def get_total_likes(self, obj):
         """
