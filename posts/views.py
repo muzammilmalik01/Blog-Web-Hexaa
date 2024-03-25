@@ -271,6 +271,7 @@ class ListComments(generics.ListAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [CommentPermissions]
+    pagination_class = None
 
 class CreateComment(generics.CreateAPIView):
     """
@@ -388,6 +389,7 @@ class ListAllLikes(generics.ListAPIView):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
     permission_classes = [LikePermissions]
+    pagination_class = None
 
 class GetLikebyUserPost(generics.RetrieveAPIView):
     queryset = Like.objects.all()
