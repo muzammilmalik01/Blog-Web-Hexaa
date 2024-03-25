@@ -20,6 +20,9 @@ class Like(models.Model):
         """
         unique_together = (('liked_by', 'post'), ('liked_by', 'comment'))
     
+    def __str__(self) -> str:
+        return f'Like by {self.liked_by} on post {self.post}'
+    
 class Post(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)

@@ -15,6 +15,7 @@ from django.conf import settings
 import stripe
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 # Post Views #
 class ScheduledPostPremiumUserMixin: # Implementing DRY.
@@ -387,6 +388,21 @@ class ListAllLikes(generics.ListAPIView):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
     permission_classes = [LikePermissions]
+
+class GetLikebyUserPost(generics.RetrieveAPIView):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+    pagination_class = None
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        obj = get_object_or_404(
+            queryset,
+            liked_by = self.kwargs['user_id'],
+            post = self.kwargs['post_id']
+        )
+        return obj
+
 
 class CreateLike(generics.CreateAPIView):
     """

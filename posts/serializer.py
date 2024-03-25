@@ -111,11 +111,12 @@ class CommentSerializer(serializers.ModelSerializer):
         """
         Overrid this function to show:
             - Author = Author.username
-            - Category = Category.title
-        Have to add Tags as title. Not added yet.
         """
         representation = super().to_representation(instance)
-        representation['author'] = instance.author.username
+        representation['author'] = {
+        'id': instance.author.id,
+        'username': instance.author.username
+    }
         return representation
         
 class PostSerializer(serializers.ModelSerializer):

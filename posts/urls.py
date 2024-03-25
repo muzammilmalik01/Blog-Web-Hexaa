@@ -29,7 +29,7 @@ urlpatterns = [
     path('like/add/', views.CreateLike.as_view(), name = 'add-like'), # Add a new like to a post or comment. (POST)
     path('like/delete/post/<int:post>/<int:user>/', views.DestroyPostLike.as_view(), name = 'destroy-like-post'), # Destroy / Remove a like on Post. (DELETE)
     path('like/delete/comment/<int:comment>/<int:user>/', views.DestroyCommentLike.as_view(), name = 'destroy-like-comment'), # Destroy / Remove a like on Comment. (DELETE)
-
+    path('like/get/post/<int:user_id>/<int:post_id>/',views.GetLikebyUserPost.as_view(), name = 'get-user-like-by-post'),
 
     # PostHistory URLs #
     path('history/', views.ListAllPostsHistory.as_view(), name = 'list-all-history'), # List all Editing Logs. (GET) 
