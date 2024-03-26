@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'drf_yasg',
     'djoser',
     'rest_framework',
@@ -37,6 +38,8 @@ INSTALLED_APPS = [
     'posts',
     'newsletter',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -180,6 +183,9 @@ DJOSER = {
     'ACTIVATION_URL': 'activate/{uid}/{token}',
     'PASSWORD_RESET_CONFIRM_URL': 'reset-password/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': 'reset-email/{uid}/{token}',
+    'PERMISSIONS': {
+        'activation': ['rest_framework.permissions.AllowAny'],
+    }
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
