@@ -35,6 +35,7 @@ class Post(models.Model):
     is_premium_post = models.BooleanField(default  = False)
     views = models.PositiveBigIntegerField(default = 0, blank = True, null = True)
     posted_at = models.DateTimeField(blank = True, null = True)
+    post_image = models.ImageField(upload_to='posts/', null=True, blank=True)
 
     def __str__(self) -> str:
         return f'{self.post_title} by {self.author}'

@@ -178,8 +178,11 @@ class SlugPostAPI(ScheduledPostPremiumUserMixin,generics.RetrieveAPIView):
         ! BUG: Users can simply perform refresh the window to increase the views count !
         * How to Fix: Use Sessions to keep track of viewed Posts or Track the user's view count using IP Address. * 
         """
-        instance = self.get_object() # Getting the instance of the object. 
-        instance.views += 1 # Incrementing the view.
+        instance = self.get_object() # Getting the instance of the object.
+        if not instance.views:  # If views are 0 (null)
+            instance.views = 1
+        else:
+            instance.views += 1 # Incrementing the view.
         instance.save(update_fields=['views']) # Updating the value in the database.
         serializer = self.get_serializer(instance) # Serializing the data.
 

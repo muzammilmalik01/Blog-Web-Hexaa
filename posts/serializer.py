@@ -139,11 +139,10 @@ class PostSerializer(serializers.ModelSerializer):
     eng_score  = serializers.SerializerMethodField()
     author = serializers.PrimaryKeyRelatedField(queryset = CustomUser.objects.all())
     category = serializers.PrimaryKeyRelatedField(queryset = Category.objects.all())
-    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'post_title','category','views', 'post_slug', 'post_text','tags','total_likes','total_comments','is_featured', 'is_top_post','posted_at', 'eng_score','is_premium_post']
+        fields = ['id', 'author', 'post_title','post_image','category','views', 'post_slug', 'post_text','tags','total_likes','total_comments','is_featured', 'is_top_post','posted_at', 'eng_score','is_premium_post']
 
     def to_representation(self, instance):
         """
@@ -155,6 +154,7 @@ class PostSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['author'] = instance.author.username
         representation['category'] = instance.category.title
+        representation['tags'] = [tag.title for tag in instance.tags.all()]
         return representation
 
     # TODO: How the response will look like, will depend on the requirement.
@@ -188,9 +188,6 @@ class PostSerializer(serializers.ModelSerializer):
     #         # If depth is 1, exclude related User fields
     #         data.pop('author')
     #     return data
-
-    def get_tags(self,obj):
-        return [tag.title for tag in obj.tags.all()]
 
     def get_total_likes(self, obj):
         """
