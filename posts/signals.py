@@ -1,6 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Post, PostHistory
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from .models import Notifications
 
 @receiver(post_save, sender=Post, dispatch_uid="create_post_history")
 def create_post_history(sender, instance, created, **kwargs):
@@ -35,3 +38,15 @@ def create_post_history(sender, instance, created, **kwargs):
         # Add the tags to the PostHistory object
         for tag in instance.tags.all():
             PostHistory.objects.last().tags.add(tag)
+
+
+def create_notification(user, message):
+    # Create notification
+    notification = Notifications.objects.create(user=user, message=message)
+    
+    # Send notification to WebSocket consumer
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        'notifications',
+        {'type': 'send_notification', 'text': 'New notification!'}
+    )

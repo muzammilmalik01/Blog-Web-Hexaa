@@ -23,6 +23,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+   #  path('ws/', include('posts.routing')),
     path('users/',include('accounts.urls')), # Accounts APIs
     path('categories/',include('category.urls')), # Categories APIs
     path('tags/', include('tag.urls')), # Tags APIs

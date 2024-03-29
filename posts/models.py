@@ -100,3 +100,12 @@ class PostHistory(models.Model):
 
     def __str__(self) -> str:
         return f"Post: {self.post.pk} by {self.author} edited at {self.updated_at}"
+
+class Notifications(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete = models.CASCADE)
+    message = models.CharField(max_length = 255)
+    notification_type = models.CharField(max_length = 30)
+    is_read = models.BooleanField(default = False)
+    created_at = models.DateTimeField(default = timezone.now)
+    post = models.ForeignKey(Post, on_delete = models.CASCADE, null = True, blank = True)
+    comment = models.ForeignKey(Comment, on_delete = models.CASCADE, null = True, blank = True)

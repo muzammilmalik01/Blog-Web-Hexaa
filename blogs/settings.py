@@ -21,7 +21,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'corsheaders',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -71,7 +73,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'blogs.wsgi.application'
+# WSGI_APPLICATION = 'blogs.wsgi.application'
+ASGI_APPLICATION = 'blogs.asgi.application'
 
 
 # Database
@@ -207,3 +210,9 @@ CORS_ALLOW_HEADERS = ['*']
 # Media Uploads Settings
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
