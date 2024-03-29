@@ -7,8 +7,12 @@ class CategoryCreate(generics.ListCreateAPIView):
     permission_classes = [CategoryPermissions]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = None
+
+    
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [CategoryPermissions]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = None

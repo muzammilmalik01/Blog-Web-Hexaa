@@ -143,7 +143,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'author', 'post_title','post_image','category','views', 'post_slug', 'post_text','tags','total_likes','total_comments','is_featured', 'is_top_post','posted_at', 'eng_score','is_premium_post']
-
+    
     def to_representation(self, instance):
         """
         Overrid this function to show:
@@ -152,7 +152,10 @@ class PostSerializer(serializers.ModelSerializer):
         Have to add Tags as title. Not added yet.
         """
         representation = super().to_representation(instance)
-        representation['author'] = instance.author.username
+        representation['author'] = representation['author'] = {
+        'id': instance.author.id,
+        'username': instance.author.username
+    }
         representation['category'] = instance.category.title
         representation['tags'] = [tag.title for tag in instance.tags.all()]
         return representation
