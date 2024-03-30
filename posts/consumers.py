@@ -25,35 +25,49 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=event['text'])
 
     async def like_notification(self, event):
+        """
+        Sends a notification when a user likes a post or comment.
+
+        Args:
+            event (dict): A dictionary containing the following keys:
+                - post_id (int): The ID of the post being liked (optional).
+                - comment_id (int): The ID of the comment being liked (optional).
+                - liker_id (int): The ID of the user who liked the post or comment.
+                - liker_username (str): The username of the user who liked the post or comment.
+                - recipient (str): The ID of the recipient of the notification.
+                - notification_type (str): The type of notification being sent.
+
+        Returns:
+            None
+        """
         post_id = event['post_id']
         comment_id = event['comment_id']
         liker_id = event['liker_id']
         liker_username = event['liker_username']
-        recepient = event['recepient']
+        recipient = event['recepient']
         notification_type = event['notification_type']
 
         if post_id is not None:
-            message = f'User {liker_username} liked post {post_id}. Recepient ID: {recepient}'
+            message = f'User {liker_username} liked post {post_id}. Recipient ID: {recipient}'
             data = {
                 'post_id': post_id,
-                'comment_id':None,
+                'comment_id': None,
                 'liker_id': liker_id,
                 'liker_username': liker_username,
-                'recipient': recepient,
+                'recipient': recipient,
                 'message': message,
-                'notification_type' : notification_type
+                'notification_type': notification_type
             }
-
         else:
-            message = f'User {liker_username} liked comment {comment_id}. Recepient ID: {recepient}'
+            message = f'User {liker_username} liked comment {comment_id}. Recipient ID: {recipient}'
             data = {
                 'post_id': post_id,
-                'comment_id':None,
+                'comment_id': None,
                 'liker_id': liker_id,
                 'liker_username': liker_username,
-                'recipient': recepient,
+                'recipient': recipient,
                 'message': message,
-                'notification_type' : notification_type
+                'notification_type': notification_type
             }
 
         json_data = json.dumps(data)

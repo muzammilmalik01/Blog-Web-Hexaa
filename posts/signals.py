@@ -51,32 +51,43 @@ def create_notification(user, message):
         {'type': 'send_notification', 'text': 'New notification!'}
     )
 
-@receiver(post_save, sender = Like)
+@receiver(post_save, sender=Like)
 def send_like_notification(sender, instance, created, **kwargs):
+    """
+    Sends a notification when a Like instance is created.
+
+    Args:
+        sender: The sender of the signal.
+        instance: The instance of the Like model that was created.
+        created: A boolean indicating whether the instance was created or updated.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        None
+    """
     if created:
-        
         channel_layer = get_channel_layer()
         if instance.post is not None:
             async_to_sync(channel_layer.group_send)(
-                'notifications',{
-                    'type' : 'like_notification',
+                'notifications', {
+                    'type': 'like_notification',
                     'post_id': instance.post.id,
-                    'comment_id' : None,
+                    'comment_id': None,
                     'liker_id': instance.liked_by.id,
                     'liker_username': instance.liked_by.username,
-                    'recepient' : instance.post.author.id,
-                    'notification_type' : 'add-post-like'
+                    'recipient': instance.post.author.id,
+                    'notification_type': 'add-post-like'
                 }
             )
         elif instance.post is None and instance.comment is not None:
             async_to_sync(channel_layer.group_send)(
-                'notifications',{
-                    'type' : 'like_notification',
+                'notifications', {
+                    'type': 'like_notification',
                     'post_id': None,
-                    'comment_id' : instance.comment.id,
+                    'comment_id': instance.comment.id,
                     'liker_id': instance.liked_by.id,
                     'liker_username': instance.liked_by.username,
-                    'recepient' : instance.comment.author.id,
-                    'notification_type' : 'add-comment-like'
+                    'recepient': instance.comment.author.id,
+                    'notification_type': 'add-comment-like'
                 }
             )
