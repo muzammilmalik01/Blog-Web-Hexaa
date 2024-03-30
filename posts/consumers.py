@@ -44,7 +44,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         comment_id = event['comment_id']
         liker_id = event['liker_id']
         liker_username = event['liker_username']
-        recipient = event['recepient']
+        recipient = event['recipient']
         notification_type = event['notification_type']
 
         if post_id is not None:
@@ -73,3 +73,41 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         json_data = json.dumps(data)
 
         await self.send(text_data=json_data)
+
+    async def newpost_notification(self, event):
+        post_id = event['post_id']
+        author_id = event['author_id']
+        author_username = event['author_username']
+        post_title = event['post_title']
+        notification_type = event['notification_type']
+
+        data = {
+                'post_id' : post_id,
+                'author_username' :author_username,
+                'author_id' :author_id,
+                'post_title' : post_title,
+                'notification_type' : notification_type
+        }
+        
+        json_data = json.dumps(data)
+        await self.send(text_data=json_data)
+
+    async def newcomment_notification(self, event):
+        author_id = event['author_id']
+        author_username = event['author_username']
+        post_id = event['post_id']
+        post_title = event['post_title']
+        recipient = event['recipient']
+        notification_type = event['notification_type']
+
+        data = {
+                'author_id' : author_id,
+                'author_username' : author_username,
+                'post_id' : post_id,
+                'post_title' : post_title,
+                'recipient' : recipient,
+                'notification_type' : notification_type
+        }
+
+        json_data = json.dumps(data)
+        await self.send (text_data=json_data)

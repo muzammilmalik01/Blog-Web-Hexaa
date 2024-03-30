@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from .models import Post, PostHistory
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .models import Notifications, Like
+from .models import Notifications, Like, Comment
 
 @receiver(post_save, sender=Post, dispatch_uid="create_post_history")
 def create_post_history(sender, instance, created, **kwargs):
@@ -87,7 +87,40 @@ def send_like_notification(sender, instance, created, **kwargs):
                     'comment_id': instance.comment.id,
                     'liker_id': instance.liked_by.id,
                     'liker_username': instance.liked_by.username,
-                    'recepient': instance.comment.author.id,
+                    'recipient': instance.comment.author.id,
                     'notification_type': 'add-comment-like'
                 }
             )
+@receiver(post_save, sender=Post)
+def send_newpost_notification(sender, instance, created, **kwargs):
+    if created:
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'notifications' , {
+                'type' : 'newpost_notification',
+                'post_id' : instance.id,
+                'author_username' :instance.author.username,
+                'author_id' :instance.author.id,
+                'post_title' : instance.post_title,
+                'notification_type' : 'newpost'
+            }
+        )
+
+@receiver(post_save, sender=Comment)
+def send_newcomment_notification(sender, instance, created, **kwargs):
+    if created:
+        channel_layer = get_channel_layer()
+        if instance.parent_comment is None:    
+            async_to_sync(channel_layer.group_send)(
+            'notifications',{
+                'type' : 'newcomment_notification',
+                'author_id' : instance.author.id,
+                'author_username' : instance.author.username,
+                'post_id' : instance.post.id,
+                'post_title' : instance.post.post_title,
+                'recipient' : instance.post.author.id,
+                'notification_type' : 'newcomment'
+            } 
+        )
+        else:
+            pass # Logic for Reply Notification
