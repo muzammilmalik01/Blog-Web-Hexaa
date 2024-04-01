@@ -61,8 +61,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         else:
             message = f'User {liker_username} liked comment {comment_id}. Recipient ID: {recipient}'
             data = {
-                'post_id': post_id,
-                'comment_id': None,
+                'post_id': None,
+                'comment_id': comment_id,
                 'liker_id': liker_id,
                 'liker_username': liker_username,
                 'recipient': recipient,
