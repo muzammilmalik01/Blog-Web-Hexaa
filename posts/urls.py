@@ -36,5 +36,9 @@ urlpatterns = [
     path('history/<int:post_id>', views.ListSinglePostHistory.as_view(), name = 'list-all-history-of-post'), # List all Editing History of a Single Post. (GET)
 
     # Contact Form #
-    path('contact/', views.SendEmailView.as_view(), name = 'contact-form')
+    path('contact/', views.SendEmailView.as_view(), name = 'contact-form'),
+
+    # Notifications URLs #
+    path('notifications/', views.NotificationsList.as_view(), name = 'all-notifications'),
+    path('notifications/<int:user_id>', views.UserNotificationList.as_view(), name = 'all-notifications-by-userid'),
 ]

@@ -2,8 +2,8 @@ from rest_framework import generics, views, status, permissions
 from django.core.mail import send_mail
 from accounts.models import CustomUser, PremiumUser
 from accounts.serializer import PremiumUserSerializer
-from .models import Like, Comment, Post, PostHistory
-from .serializer import LikeSerializer, CommentSerializer, PostSerializer, PostHistorySerializer
+from .models import Like, Comment, Post, PostHistory, Notifications
+from .serializer import LikeSerializer, CommentSerializer, PostSerializer, PostHistorySerializer, NotificationsSerializier
 from django.utils.text import slugify
 from django.http import Http404
 from rest_framework.response import Response
@@ -624,3 +624,47 @@ class PremiumPostsList(PremiumPostMixin,PaginationMixin,generics.ListAPIView):
     """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+
+class NotificationsList(generics.ListAPIView):
+    """
+    API view for retrieving a list of notifications.
+
+    This view returns a list of all notifications in the database.
+    """
+    queryset = Notifications.objects.all()
+    serializer_class = NotificationsSerializier
+    pagination_class = None
+
+class UserNotificationList(generics.ListAPIView):
+    """
+    API view to retrieve a list of notifications for a specific user.
+
+    This view returns a list of notifications filtered by the user ID provided in the URL.
+    If no notifications are found for the user, a 404 error is raised.
+
+    URL Parameters:
+        - user_id (int): The ID of the user for whom to retrieve notifications.
+
+    Example:
+        GET /notifications/user/1/
+
+    Returns:
+        A list of notifications for the specified user.
+
+    Raises:
+        Http404: If no notifications are found for the user.
+    """
+
+    queryset = Notifications.objects.all()
+    serializer_class = NotificationsSerializier
+    pagination_class = None
+
+    def get_queryset(self):
+        userid = self.kwargs.get('user_id')
+        user_obj = CustomUser.objects.get(id=userid)
+        queryset = self.queryset.filter(user=user_obj)
+
+        if not queryset.exists():
+            raise Http404(f"No notifications found for this user.")
+
+        return queryset

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Like, Comment, Post, PostHistory, Category, Tag
+from .models import Like, Comment, Post, PostHistory, Category, Tag, Notifications
 from accounts.models import CustomUser
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -257,3 +257,11 @@ class PostHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = PostHistory
         fields = '__all__'
+
+class NotificationsSerializier(serializers.ModelSerializer):
+    """
+    Serializer Class for PostHistory
+    """
+    class Meta:
+            model = Notifications
+            fields = '__all__'

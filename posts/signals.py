@@ -68,6 +68,14 @@ def send_like_notification(sender, instance, created, **kwargs):
     if created:
         channel_layer = get_channel_layer()
         if instance.post is not None:
+            # If it is a Like on the post, send it to the post author.
+            Notifications.objects.create(
+                user = instance.post.author,
+                notification_type = 'add-post-like',
+                post = instance.post,
+                comment  = None,
+                message = f'{instance.post.author.username} liked your post "{instance.post.post_title}".'
+            ) # Save the notification to the DB.
             async_to_sync(channel_layer.group_send)(
                 'notifications', {
                     'type': 'like_notification',
@@ -78,8 +86,16 @@ def send_like_notification(sender, instance, created, **kwargs):
                     'recipient': instance.post.author.id,
                     'notification_type': 'add-post-like'
                 }
-            )
+            ) # Send the notification.
         elif instance.post is None and instance.comment is not None:
+            # If its is a Like on the Comment, send it to the comment author.
+            Notifications.objects.create(
+                user = instance.comment.author,
+                notification_type = 'add-comment-like',
+                post = instance.post,
+                comment  = instance.comment,
+                message = f'{instance.liked_by.username} liked your comment. "{instance.comment.comment_text[:10]}."'
+            ) # Save it to the DB.
             async_to_sync(channel_layer.group_send)(
                 'notifications', {
                     'type': 'like_notification',
@@ -90,9 +106,11 @@ def send_like_notification(sender, instance, created, **kwargs):
                     'recipient': instance.comment.author.id,
                     'notification_type': 'add-comment-like'
                 }
-            )
+            ) # Send the notification
+
 @receiver(post_save, sender=Post)
 def send_newpost_notification(sender, instance, created, **kwargs):
+    # TODO: Have to implement new record creation to the DB.
     if created:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
@@ -104,13 +122,20 @@ def send_newpost_notification(sender, instance, created, **kwargs):
                 'post_title' : instance.post_title,
                 'notification_type' : 'newpost'
             }
-        )
+        ) # Send the notification.
 
 @receiver(post_save, sender=Comment)
 def send_newcomment_notification(sender, instance, created, **kwargs):
     if created:
         channel_layer = get_channel_layer()
-        if instance.parent_comment is None:    
+        if instance.parent_comment is None: 
+            # If it is a comment to the post.
+            Notifications.objects.create(
+                user = instance.post.author,
+                notification_type = 'newcomment',
+                post = instance.post,
+                message = f'{instance.author.username} commented on your post "{instance.post.post_title}".'
+            )  # Save to the DB.
             async_to_sync(channel_layer.group_send)(
             'notifications',{
                 'type' : 'newcomment_notification',
@@ -121,6 +146,7 @@ def send_newcomment_notification(sender, instance, created, **kwargs):
                 'recipient' : instance.post.author.id,
                 'notification_type' : 'newcomment'
             } 
-        )
+        ) # Send the notification.
         else:
+            # TODO: Implement logic for reply.
             pass # Logic for Reply Notification
