@@ -99,15 +99,27 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         post_title = event['post_title']
         recipient = event['recipient']
         notification_type = event['notification_type']
+        reply_to = event['reply_to']
 
-        data = {
-                'author_id' : author_id,
-                'author_username' : author_username,
-                'post_id' : post_id,
-                'post_title' : post_title,
-                'recipient' : recipient,
-                'notification_type' : notification_type
-        }
+        if notification_type == 'newcomment':
+            data = {
+                    'author_id' : author_id,
+                    'author_username' : author_username,
+                    'post_id' : post_id,
+                    'post_title' : post_title,
+                    'recipient' : recipient,
+                    'notification_type' : notification_type
+            }
+        elif notification_type == 'newreply':
+            data = {
+                    'author_id' : author_id,
+                    'author_username' : author_username,
+                    'post_id' : post_id,
+                    'post_title' : post_title,
+                    'recipient' : recipient,
+                    'notification_type' : notification_type,
+                    'reply_to' : reply_to
+            }
 
         json_data = json.dumps(data)
         await self.send (text_data=json_data)

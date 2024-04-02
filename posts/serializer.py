@@ -54,10 +54,11 @@ class CommentSerializer(serializers.ModelSerializer):
     total_replies = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     author = serializers.PrimaryKeyRelatedField(queryset = CustomUser.objects.all())
+    replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'comment_text', 'post','parent_comment', 'commented_on', 'total_likes', 'total_replies', 'likes']
+        fields = ['id', 'author', 'comment_text', 'post','parent_comment', 'commented_on', 'total_likes', 'total_replies', 'likes', 'replies']
 
     def get_total_likes(self, obj):
         """
@@ -87,6 +88,10 @@ class CommentSerializer(serializers.ModelSerializer):
         likes = Like.objects.filter(comment = obj)
         # print(like)
         return [l.liked_by.id for l in likes]
+    
+    def get_replies(self, obj):
+        replies = Comment.objects.filter(parent_comment = obj)
+        return CommentSerializer(replies, many = True).data
 
     def validate(self, data):
         """

@@ -288,7 +288,7 @@ class CreateComment(generics.CreateAPIView):
     """
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [CommentPermissions]
+    # permission_classes = [CommentPermissions]
 
 class DetailComment(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -357,7 +357,7 @@ class GetPostCommentsbySlug(generics.ListAPIView):
     """
 
     serializer_class = CommentSerializer
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(parent_comment = None)
     pagination_class = None
     # permission_classes = [CommentPermissions]
 

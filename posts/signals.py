@@ -144,9 +144,26 @@ def send_newcomment_notification(sender, instance, created, **kwargs):
                 'post_id' : instance.post.id,
                 'post_title' : instance.post.post_title,
                 'recipient' : instance.post.author.id,
+                'reply_to' : None,
                 'notification_type' : 'newcomment'
             } 
+        ) # Send the notification.            
+        elif instance.parent_comment is not None:
+            Notifications.objects.create(
+            user = instance.parent_comment.author,
+            notification_type = 'newreply',
+            post = instance.post,
+            message = f'{instance.author.username} replied to your comment "{instance.parent_comment.comment_text}".'
+            )
+            async_to_sync(channel_layer.group_send)(
+            'notifications',{
+                'type' : 'newcomment_notification',
+                'author_id' : instance.author.id,
+                'author_username' : instance.author.username,
+                'post_id' : instance.post.id,
+                'post_title' : instance.post.post_title,
+                'recipient' : instance.parent_comment.author.id,
+                'reply_to' : instance.parent_comment.comment_text,
+                'notification_type' : 'newreply'
+            } 
         ) # Send the notification.
-        else:
-            # TODO: Implement logic for reply.
-            pass # Logic for Reply Notification
