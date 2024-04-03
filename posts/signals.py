@@ -74,7 +74,7 @@ def send_like_notification(sender, instance, created, **kwargs):
                 notification_type = 'add-post-like',
                 post = instance.post,
                 comment  = None,
-                message = f'{instance.post.author.username} liked your post "{instance.post.post_title}".'
+                message = f'@{instance.liked_by.username} liked your post "{instance.post.post_title}".'
             ) # Save the notification to the DB.
             async_to_sync(channel_layer.group_send)(
                 'notifications', {
@@ -134,6 +134,7 @@ def send_newcomment_notification(sender, instance, created, **kwargs):
                 user = instance.post.author,
                 notification_type = 'newcomment',
                 post = instance.post,
+                comment = instance,
                 message = f'{instance.author.username} commented on your post "{instance.post.post_title}".'
             )  # Save to the DB.
             async_to_sync(channel_layer.group_send)(

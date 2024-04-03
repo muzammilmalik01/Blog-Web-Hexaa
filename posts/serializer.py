@@ -267,6 +267,35 @@ class NotificationsSerializier(serializers.ModelSerializer):
     """
     Serializer Class for PostHistory
     """
+    post = serializers.PrimaryKeyRelatedField(queryset = Post.objects.all())
+    comment = serializers.PrimaryKeyRelatedField(queryset = Comment.objects.all())
     class Meta:
             model = Notifications
-            fields = '__all__'
+            fields = ['id','user','message','notification_type','is_read', 'created_at', 'post','comment']
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.post is not None and instance.comment is not None:
+            representation['post'] = {
+                'id': instance.post.id,
+                'post_slug': instance.post.post_slug
+            }
+            representation['comment'] = {
+                'id': instance.comment.id,
+                'post_slug' : instance.comment.post.post_slug
+            }
+        elif instance.post is None and instance.comment is not None:
+            representation['post'] = None
+            representation['comment'] = {
+                'id': instance.comment.id,
+                'post_slug' : instance.comment.post.post_slug
+            }
+        elif instance.post is not None and instance.comment is None:
+            representation['post'] = {
+                'id': instance.post.id,
+                'post_slug': instance.post.post_slug
+            }
+            representation['comment'] = None
+
+        return representation
