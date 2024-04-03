@@ -41,4 +41,5 @@ urlpatterns = [
     # Notifications URLs #
     path('notifications/', views.NotificationsList.as_view(), name = 'all-notifications'),
     path('notifications/<int:user_id>', views.UserNotificationList.as_view(), name = 'all-notifications-by-userid'),
+    path('notification/update/<int:pk>',views.DetailedNotification.as_view(), name = 'update-notification'),
 ]

@@ -655,7 +655,7 @@ class UserNotificationList(generics.ListAPIView):
         Http404: If no notifications are found for the user.
     """
 
-    queryset = Notifications.objects.all()
+    queryset = Notifications.objects.all().order_by('-created_at')
     serializer_class = NotificationsSerializier
     pagination_class = None
 
@@ -668,3 +668,7 @@ class UserNotificationList(generics.ListAPIView):
             raise Http404(f"No notifications found for this user.")
 
         return queryset
+
+class DetailedNotification(generics.UpdateAPIView):
+    queryset = Notifications.objects.all()
+    serializer_class = NotificationsSerializier
