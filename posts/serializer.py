@@ -4,11 +4,12 @@ from accounts.models import CustomUser
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = '__all__'
-    
+        fields = "__all__"
+
     def validate(self, data):
         """
         Validates the data for the serializer.
@@ -25,21 +26,24 @@ class LikeSerializer(serializers.ModelSerializer):
         ! BUG: Multiple Likes with same user on same post can be added using Admin Panel bcs admin panel don't serialize the data !
         * Working perfectly if same user tries to like a Post or Comment multiple times *
         """
-        liked_by = data.get('liked_by')
-        post = data.get('post')
-        comment = data.get('comment')
+        liked_by = data.get("liked_by")
+        post = data.get("post")
+        comment = data.get("comment")
 
-        if post == None and comment == None: # Checking if it is a blank like.
-            raise serializers.ValidationError("Please select either a post or a comment to like .")
-        
-        elif post and comment: # Checking if post and comment both are selected.
+        if post == None and comment == None:  # Checking if it is a blank like.
+            raise serializers.ValidationError(
+                "Please select either a post or a comment to like ."
+            )
+
+        elif post and comment:  # Checking if post and comment both are selected.
             raise serializers.ValidationError("Can't like both.")
-        
-        elif post: # checking if it is a like for a post.
+
+        elif post:  # checking if it is a like for a post.
             if timezone.is_aware(post.posted_at) and post.posted_at > timezone.now():
-                raise ValidationError('Post has not been published yet.')
-        
-        return data # Returning data if above conditions are not met.
+                raise ValidationError("Post has not been published yet.")
+
+        return data  # Returning data if above conditions are not met.
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """
@@ -53,12 +57,23 @@ class CommentSerializer(serializers.ModelSerializer):
     total_likes = serializers.SerializerMethodField()
     total_replies = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
-    author = serializers.PrimaryKeyRelatedField(queryset = CustomUser.objects.all())
+    author = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
     replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'comment_text', 'post','parent_comment', 'commented_on', 'total_likes', 'total_replies', 'likes', 'replies']
+        fields = [
+            "id",
+            "author",
+            "comment_text",
+            "post",
+            "parent_comment",
+            "commented_on",
+            "total_likes",
+            "total_replies",
+            "likes",
+            "replies",
+        ]
 
     def get_total_likes(self, obj):
         """
@@ -83,15 +98,15 @@ class CommentSerializer(serializers.ModelSerializer):
             int: The total number of replies for the comment.
         """
         return Comment.objects.filter(parent_comment=obj).count()
-    
+
     def get_likes(self, obj):
-        likes = Like.objects.filter(comment = obj)
+        likes = Like.objects.filter(comment=obj)
         # print(like)
         return [l.liked_by.id for l in likes]
-    
+
     def get_replies(self, obj):
-        replies = Comment.objects.filter(parent_comment = obj)
-        return CommentSerializer(replies, many = True).data
+        replies = Comment.objects.filter(parent_comment=obj)
+        return CommentSerializer(replies, many=True).data
 
     def validate(self, data):
         """
@@ -106,15 +121,15 @@ class CommentSerializer(serializers.ModelSerializer):
         Returns:
             dict: The validated data.
         """
-        post = data.get('post')
+        post = data.get("post")
 
         # Check if post is provided
         if not post:
-            raise ValidationError('Post is required.')
+            raise ValidationError("Post is required.")
 
         # Check if post.posted_at is timezone-aware and if the post has been published
         if timezone.is_aware(post.posted_at) and post.posted_at > timezone.now():
-            raise ValidationError('Post has not been published yet.')
+            raise ValidationError("Post has not been published yet.")
 
         return data
 
@@ -124,12 +139,13 @@ class CommentSerializer(serializers.ModelSerializer):
             - Author = Author.username
         """
         representation = super().to_representation(instance)
-        representation['author'] = {
-        'id': instance.author.id,
-        'username': instance.author.username
-    }
+        representation["author"] = {
+            "id": instance.author.id,
+            "username": instance.author.username,
+        }
         return representation
-        
+
+
 class PostSerializer(serializers.ModelSerializer):
     """
     Serializer class for the Post model.
@@ -141,14 +157,31 @@ class PostSerializer(serializers.ModelSerializer):
 
     total_likes = serializers.SerializerMethodField()
     total_comments = serializers.SerializerMethodField()
-    eng_score  = serializers.SerializerMethodField()
-    author = serializers.PrimaryKeyRelatedField(queryset = CustomUser.objects.all())
-    category = serializers.PrimaryKeyRelatedField(queryset = Category.objects.all())
+    eng_score = serializers.SerializerMethodField()
+    author = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'post_title','post_image','category','views', 'post_slug', 'post_text','tags','total_likes','total_comments','is_featured', 'is_top_post','posted_at', 'eng_score','is_premium_post']
-    
+        fields = [
+            "id",
+            "author",
+            "post_title",
+            "post_image",
+            "category",
+            "views",
+            "post_slug",
+            "post_text",
+            "tags",
+            "total_likes",
+            "total_comments",
+            "is_featured",
+            "is_top_post",
+            "posted_at",
+            "eng_score",
+            "is_premium_post",
+        ]
+
     def to_representation(self, instance):
         """
         Overrid this function to show:
@@ -157,45 +190,13 @@ class PostSerializer(serializers.ModelSerializer):
         Have to add Tags as title. Not added yet.
         """
         representation = super().to_representation(instance)
-        representation['author'] = representation['author'] = {
-        'id': instance.author.id,
-        'username': instance.author.username
-    }
-        representation['category'] = instance.category.title
-        representation['tags'] = [tag.title for tag in instance.tags.all()]
+        representation["author"] = representation["author"] = {
+            "id": instance.author.id,
+            "username": instance.author.username,
+        }
+        representation["category"] = instance.category.title
+        representation["tags"] = [tag.title for tag in instance.tags.all()]
         return representation
-
-    # TODO: How the response will look like, will depend on the requirement.
-    # TODO: Still have to figure the problem on how to manage POST, UPDATE, PATCH request. (Fields do not appear when depth = 1)
-    # TODO: POST, UPDATE, PATCH will cause issue when depth = 1. API Response should not return Foreign Key as an ID.
-    # Init function override: https://stackoverflow.com/questions/32202824/depth-1-doesnt-work-properly-and-its-saves-null-in-manytomanyfield-and-forei
-    # def __init__(self, *args, **kwargs):
-    #     super(PostSerializer, self).__init__(*args, **kwargs)
-    #     request = self.context.get('request')
-    #     if request and request.method=='POST':
-    #         self.Meta.depth = 0
-    #     else:
-    #         self.Meta.depth = 1
-        
-    # def get_depth(self):
-    #     """
-    #     Override to dynamically determine the depth based on the request method.
-    #     """
-    #     request = self.context.get('request')
-    #     if request and request.method == 'POST':
-    #         return 0  # Set depth to 0 for POST requests
-    #     return 1  # Use default depth for other requests
-
-    # def to_representation(self, instance):
-    #     """
-    #     Override to customize the serialized representation of the Post instance.
-    #     """
-    #     data = super().to_representation(instance)
-    #     depth = self.get_depth()
-    #     if depth == 1:
-    #         # If depth is 1, exclude related User fields
-    #         data.pop('author')
-    #     return data
 
     def get_total_likes(self, obj):
         """
@@ -220,15 +221,15 @@ class PostSerializer(serializers.ModelSerializer):
             int: The total number of comments for the post.
         """
         return Comment.objects.filter(post=obj).count()
-    
+
     def get_eng_score(self, obj):
         """
         Calculates Engagement Score, used for browsing Trending Posts.
         Weights = Dummy for now.
 
         Formula: (total_views * view_weight) + (total_likes * like_weight) + (total_comments * comment_weight) + (date_weight/(current_date - post_date))
-        
-        Returns = Engagement Score (float) 
+
+        Returns = Engagement Score (float)
         """
         # Weights
         view_weight = 3
@@ -236,7 +237,7 @@ class PostSerializer(serializers.ModelSerializer):
         comment_weight = 2
         date_weight = 4
         # Gettings all Posts Metrics.
-        total_likes = Like.objects.filter(post=obj).count() 
+        total_likes = Like.objects.filter(post=obj).count()
         total_comments = Comment.objects.filter(post=obj).count()
         total_views = obj.views
         post_date = obj.posted_at
@@ -247,55 +248,83 @@ class PostSerializer(serializers.ModelSerializer):
         total_comments = total_comments if total_comments is not None else 0
 
         if post_date is not None:
-            days_difference = (current_date - post_date).days # Preventing division by 0 ahead.
+            days_difference = (
+                current_date - post_date
+            ).days  # Preventing division by 0 ahead.
         else:
             days_difference = 0
         # If Days Difference is 0, it will automatically return 0, so ZeroDivisionError is not raise.
-        eng_score = (total_views * view_weight) + (total_likes * like_weight) + (total_comments * comment_weight) + (date_weight/days_difference if days_difference else 0)
+        eng_score = (
+            (total_views * view_weight)
+            + (total_likes * like_weight)
+            + (total_comments * comment_weight)
+            + (date_weight / days_difference if days_difference else 0)
+        )
         return eng_score
-    
+
 
 class PostHistorySerializer(serializers.ModelSerializer):
     """
     Serializer Class for PostHistory
     """
+
     class Meta:
         model = PostHistory
-        fields = '__all__'
+        fields = "__all__"
+
 
 class NotificationsSerializier(serializers.ModelSerializer):
     """
     Serializer Class for PostHistory
     """
-    post = serializers.PrimaryKeyRelatedField(queryset = Post.objects.all())
-    comment = serializers.PrimaryKeyRelatedField(queryset = Comment.objects.all())
-    class Meta:
-            model = Notifications
-            fields = ['id','user','message','notification_type','is_read', 'created_at', 'post','comment']
 
+    post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all())
+    comment = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all())
+
+    class Meta:
+        model = Notifications
+        fields = [
+            "id",
+            "user",
+            "message",
+            "notification_type",
+            "is_read",
+            "created_at",
+            "post",
+            "comment",
+        ]
 
     def to_representation(self, instance):
+        """
+        Convert the instance into a dictionary representation.
+
+        Args:
+            instance: The instance to be converted.
+
+        Returns:
+            A dictionary representation of the instance.
+        """
         representation = super().to_representation(instance)
         if instance.post is not None and instance.comment is not None:
-            representation['post'] = {
-                'id': instance.post.id,
-                'post_slug': instance.post.post_slug
+            representation["post"] = {
+                "id": instance.post.id,
+                "post_slug": instance.post.post_slug,
             }
-            representation['comment'] = {
-                'id': instance.comment.id,
-                'post_slug' : instance.comment.post.post_slug
+            representation["comment"] = {
+                "id": instance.comment.id,
+                "post_slug": instance.comment.post.post_slug,
             }
         elif instance.post is None and instance.comment is not None:
-            representation['post'] = None
-            representation['comment'] = {
-                'id': instance.comment.id,
-                'post_slug' : instance.comment.post.post_slug
+            representation["post"] = None
+            representation["comment"] = {
+                "id": instance.comment.id,
+                "post_slug": instance.comment.post.post_slug,
             }
         elif instance.post is not None and instance.comment is None:
-            representation['post'] = {
-                'id': instance.post.id,
-                'post_slug': instance.post.post_slug
+            representation["post"] = {
+                "id": instance.post.id,
+                "post_slug": instance.post.post_slug,
             }
-            representation['comment'] = None
+            representation["comment"] = None
 
         return representation

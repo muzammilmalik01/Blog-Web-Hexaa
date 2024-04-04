@@ -154,6 +154,7 @@ def send_newcomment_notification(sender, instance, created, **kwargs):
             user = instance.parent_comment.author,
             notification_type = 'newreply',
             post = instance.post,
+            comment = instance,
             message = f'{instance.author.username} replied to your comment "{instance.parent_comment.comment_text}".'
             )
             async_to_sync(channel_layer.group_send)(
