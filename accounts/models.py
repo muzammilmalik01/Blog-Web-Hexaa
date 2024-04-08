@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 import stripe
 
+
 class CustomUser(AbstractUser):
     """
     A custom user model for the blogging site.
@@ -13,13 +14,22 @@ class CustomUser(AbstractUser):
     """
 
     email = models.EmailField(unique=True)
-    is_staff = models.BooleanField(default=False) # Editor
-    is_superuser = models.BooleanField(default=False) # Super Admin
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'password','is_staff','is_superuser','username']
+    is_staff = models.BooleanField(default=False)  # Editor
+    is_superuser = models.BooleanField(default=False)  # Super Admin
+    USERNAME_FIELD = "email"
+    picture = models.ImageField(upload_to="profile_pictures/", null=True, blank=True)
+    REQUIRED_FIELDS = [
+        "first_name",
+        "last_name",
+        "password",
+        "is_staff",
+        "is_superuser",
+        "username",
+    ]
 
     def __str__(self):
         return self.email
+
 
 class PremiumUser(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
@@ -31,12 +41,14 @@ class PremiumUser(models.Model):
         """
         This method checks if the user has active subscription or not.
         """
-        customer = stripe.Customer.retrieve(self.stripe_customer_id, expand=['subscriptions'])
+        customer = stripe.Customer.retrieve(
+            self.stripe_customer_id, expand=["subscriptions"]
+        )
 
         for subscription in customer.subscriptions.data:
-            if subscription.status == 'active':
+            if subscription.status == "active":
                 return True
-        
+
         return False
 
     def __str__(self):
