@@ -10,9 +10,11 @@ class AllAccountsListAPI(generics.ListAPIView):
     """
     Lists all the accounts in the database.
     """
+
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     pagination_class = PageNumberPagination
+
 
 class CreateAccountAPI(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -25,13 +27,14 @@ class CreateAccountAPI(generics.CreateAPIView):
 
         Pops out the password from validated_data, hashes and saves the password.
 
-        validated_data (Serializer's Instance - Dictionary) 
+        validated_data (Serializer's Instance - Dictionary)
 
-        # * Password is hashed and saved to the DATABASE *  
+        # * Password is hashed and saved to the DATABASE *
         """
-        password = serializer.validated_data.pop('password') # popping password.
-        hashed_password = make_password(password) # hashing password.
-        serializer.save(password=hashed_password) # saving to the DB.
+        password = serializer.validated_data.pop("password")  # popping password.
+        hashed_password = make_password(password)  # hashing password.
+        serializer.save(password=hashed_password)  # saving to the DB.
+
 
 class DetailAccountAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
@@ -44,10 +47,10 @@ class DetailAccountAPI(generics.RetrieveUpdateDestroyAPIView):
 
         Pops out the password from validated_data, hashes and saves the password.
 
-        validated_data (Serializer's Instance - Dictionary) 
+        validated_data (Serializer's Instance - Dictionary)
 
-        # * Password is hashed and saved to the DATABASE *  
+        # * Password is hashed and saved to the DATABASE *
         """
-        password = serializer.validated_data.pop('password') # popping password.
-        hashed_password = make_password(password) # hashing password.
-        serializer.save(password=hashed_password) # saving to the DB.
+        password = serializer.validated_data.pop("password")  # popping password.
+        hashed_password = make_password(password)  # hashing password.
+        serializer.save(password=hashed_password)  # saving to the DB.

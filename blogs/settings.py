@@ -2,9 +2,12 @@ from pathlib import Path
 from datetime import timedelta
 import os
 
+# from decouple import Config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# config = Config()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -40,11 +43,16 @@ INSTALLED_APPS = [
     "tag",
     "posts",
     "newsletter",
+    "oauth2_provider",
+    "social_django",
+    "drf_social_oauth2",
 ]
 
 SITE_ID = 1
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "social_django.middleware.SocialAuthExceptionMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -52,7 +60,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "blogs.urls"
@@ -68,6 +75,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
             ],
         },
     },
@@ -138,6 +147,8 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",  # django-oauth-toolkit >= 1.0.0
+        "drf_social_oauth2.authentication.SocialAuthentication",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 5,  # Number of objects per page
@@ -179,6 +190,12 @@ DJOSER = {
     "PERMISSIONS": {
         "activation": ["rest_framework.permissions.AllowAny"],
     },
+    "SOCIAL_AUTH_TOKEN_STRATEGY": "djoser.social.token.jwt.TokenStrategy",
+    "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": [
+        "http://127.0.0.1:8000/facebook/",
+        "http://localhost:3000/login-register",
+        "http://127.0.0.1:3000/login-register",
+    ],
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -194,7 +211,9 @@ STRIPE_SECRET_KEY = "sk_test_51OqrmrLbIWA3Cm6EYV1nxcUneeCOL2Zh0XAW1AbevXjrJ52yVS
 
 # To allow all origins
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_HEADERS = ["*"]
+CORS_ALLOW_HEADERS = ["Authorization", "Content-Type", "Accept"]
+CORS_ALLOW_CREDENTIALS = True
+# SESSION_COOKIE_DOMAIN = "localhost"
 
 # Media Uploads Settings
 MEDIA_URL = "/media/"
@@ -206,3 +225,39 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
+
+AUTHENTICATION_BACKENDS = (
+    "drf_social_oauth2.backends.DjangoOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
+    # Facebook Auth
+    "social_core.backends.facebook.FacebookAppOAuth2",
+    "social_core.backends.facebook.FacebookOAuth2",
+    # Google Auth
+    "social_core.backends.google.GoogleOAuth2",
+)
+
+# Facebook configuration
+SOCIAL_AUTH_FACEBOOK_KEY = os.environ.get("SOCIAL_AUTH_FACEBOOK_KEY")
+SOCIAL_AUTH_FACEBOOK_SECRET = os.environ.get("SOCIAL_AUTH_FACEBOOK_SECRET")
+SOCIAL_AUTH_FACEBOOK_SCOPE = ["email"]
+# * Issue: Unable to get email while user creation. Add the following lines:
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {"fields": "id, name, email"}
+SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
+SOCIAL_AUTH_USER_FIELDS = ["email", "first_name", "username", "password"]
+
+
+# Google Configuration
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = (
+    "117806175621-ui2j2s7v0vfm0uvbo6r59p4feh9a9b1m.apps.googleusercontent.com"
+)
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "openid",
+]
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ["first_name", "last_name"]
+SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = (
+    "http://localhost:8000/auth/complete/google-oauth2/"
+)
+# SECURE_SSL_REDIRECT = True

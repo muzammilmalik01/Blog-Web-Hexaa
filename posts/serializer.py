@@ -142,6 +142,8 @@ class CommentSerializer(serializers.ModelSerializer):
         representation["author"] = {
             "id": instance.author.id,
             "username": instance.author.username,
+            "first_name": instance.author.first_name,
+            "last_name": instance.author.last_name,
         }
         return representation
 

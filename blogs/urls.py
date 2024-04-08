@@ -12,6 +12,10 @@ from posts.views import CreateSubscriptionView
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+# from djoser.views import UserCreateView
+from social_django.urls import urlpatterns as social_django_urls
+
 schema_view = get_schema_view(
     openapi.Info(
         title="Blogging Project APIs",
@@ -24,6 +28,8 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
+
+app_name = "blogs"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -51,7 +57,12 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
-    # DJoser APIs
+    # DJoser APIs #! (DO NOT REMOVE ANY, IDK WHICH ONE IS MAKING SOCIAL LOGINS WORK)
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
+    path("auth/", include(("djoser.social.urls", "djoser_social"), namespace="social")),
+    path("auth/", include("djoser.urls.authtoken")),
+    path("api/", include("rest_framework.urls", namespace="rest_framework")),
+    path("auth/", include("drf_social_oauth2.urls", namespace="drf")),
+    path("auth/", include("social_django.urls", namespace="socials")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
