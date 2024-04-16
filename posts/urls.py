@@ -11,6 +11,9 @@ urlpatterns = [
         "all/", views.ListAllPostsAPI.as_view(), name="all-posts"
     ),  # List all posts. (GET)
     path(
+        "adminlist/", views.ListAllPostsAPIADMIN.as_view(), name="admin-posts"
+    ),  # List all posts. (GET)
+    path(
         "detail-post/<int:pk>/", views.DetailPostAPI.as_view(), name="detail-post"
     ),  # Detailed post by pk. (GET, PUT, PATCH, DELETE)
     path(

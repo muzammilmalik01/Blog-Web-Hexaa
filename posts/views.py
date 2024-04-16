@@ -30,6 +30,7 @@ from django.shortcuts import get_object_or_404
 
 
 # ! PERMISSIONS NOT YET APPLIED !
+# ! Permissions need to be reviewed once before completion of the project.
 # Post Views #
 class ScheduledPostPremiumUserMixin:  # Implementing DRY.
 
@@ -151,6 +152,22 @@ class ListAllPostsAPI(
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     permission_classes = [PostPermissions]
+
+
+class ListAllPostsAPIADMIN(ScheduledPostPremiumUserMixin, generics.ListAPIView):
+    """
+    List view for Admin access without pagination.
+
+    Gets all Published posts. (Implementation of content scheduling)
+
+    * Scheduling enabled *
+    * Premium Posts Enabled *
+    """
+
+    serializer_class = PostSerializer
+    queryset = Post.objects.all()
+    permission_classes = [PostPermissions]
+    pagination_class = None
 
 
 class DetailPostAPI(
