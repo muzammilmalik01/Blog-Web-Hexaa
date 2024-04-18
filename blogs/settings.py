@@ -264,3 +264,4 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ["first_name", "last_name", "picture"]
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = (
     "http://localhost:8000/auth/complete/google-oauth2/"
 )
+# ** TEST COMMIT for GitHub and BitBucket
