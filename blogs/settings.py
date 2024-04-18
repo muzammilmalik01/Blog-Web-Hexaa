@@ -182,6 +182,10 @@ SIMPLE_JWT = {
 SWAGGER_SETTINGS = {"SECURITY_DEFINITIONS": {"Basic": {"type": "basic"}}}
 
 DJOSER = {
+    # ** TO Change Domain of Activtion and Reset Password Links:
+    # ** Run the following commands in Python Shell ($ python manage.py shell)
+    # >>> from django.contrib.sites.models import Site
+    # >>> Site.objects.update_or_create(pk=1, defaults={'domain': '127.0.0.1:3000', 'name': 'localhost'})
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "ACTIVATION_URL": "activate/{uid}/{token}",
@@ -260,4 +264,3 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ["first_name", "last_name", "picture"]
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = (
     "http://localhost:8000/auth/complete/google-oauth2/"
 )
-# SECURE_SSL_REDIRECT = True
