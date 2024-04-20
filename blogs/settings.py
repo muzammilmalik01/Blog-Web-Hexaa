@@ -249,6 +249,29 @@ SOCIAL_AUTH_USER_FIELDS = ["email", "first_name", "username", "password"]
 
 
 # Google Configuration
+# ! IMPORTANT !
+# ! This can be done via over-riding as well. Tried but failed :(
+# * To get the User Profile Picture from Google:
+
+# * 1. Name / Rename the Picture Field in User / Account models -> 'picture'. It is important that name of the image field is 'picture' to automatically save the profile picture.
+
+# * 2. Go to the following file:
+# *     >>> env -> lib -> python3.11 -> site-packages -> social_core -> backends -> google.py
+
+# * 3. Go to the following method:
+# *     class BaseGoogleAuth -> def get_user_details()
+
+# * 4. Add the following lines of code:
+#  >>> ... (other code)
+#  >>> picture = response.get("picture", "")
+#  >>> ... (other code)
+#  >>> return {
+#       ... (other objects to return)
+#       "picture": picture,
+#       ... (other objects to return)
+#    }
+
+# * Now the profile picture will be automatically set when user Sign-up/log-in.
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = (
     "117806175621-ui2j2s7v0vfm0uvbo6r59p4feh9a9b1m.apps.googleusercontent.com"
 )
@@ -261,4 +284,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
 SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ["first_name", "last_name", "picture"]
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = (
     "http://localhost:8000/auth/complete/google-oauth2/"
+)
+
+SOCIAL_AUTH_UPDATE_USER_DETAILS_ON_LOGIN = (
+    True  # * Will update user details on every social login
 )

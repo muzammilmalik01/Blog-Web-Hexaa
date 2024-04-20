@@ -25,6 +25,7 @@ class CustomUser(AbstractUser):
         "is_staff",
         "is_superuser",
         "username",
+        "picture",
     ]
 
     def __str__(self):
