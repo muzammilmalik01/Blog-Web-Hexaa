@@ -137,13 +137,29 @@ class CommentSerializer(serializers.ModelSerializer):
         """
         Overrid this function to show:
             - Author = Author.username
+            - ID = Author.id
+            - first_name = Author.first_name
+            - last_name = Author.last_name
+            - picture = Author.picture
         """
         representation = super().to_representation(instance)
+        picture_url = str(instance.author.picture)  # convert the picture URL to String
+        # Checks if the profile picture is NULL
+        if not picture_url:
+            # If null
+            picture_url = None
+
+        else:
+            # else, check if the profile picture is from normal account or Social Login
+            if not picture_url.startswith("http"):  # Picture from normal account
+                picture_url = f"http://127.0.0.1:8000/media/{picture_url}"  # convert to proper link
+
         representation["author"] = {
             "id": instance.author.id,
             "username": instance.author.username,
             "first_name": instance.author.first_name,
             "last_name": instance.author.last_name,
+            "picture": picture_url,
         }
         return representation
 
