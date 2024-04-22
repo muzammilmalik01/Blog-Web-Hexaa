@@ -250,13 +250,26 @@ SOCIAL_AUTH_USER_FIELDS = ["email", "first_name", "username", "password"]
 
 # Google Configuration
 # ! IMPORTANT !
+
+# * ---------------- Instruction 1 ---------------- *
+# ! 1. Login issue with Google Social Login:
+# * Front-end needs to be hosted at the same domain.
+# *     - If back-end -> 127.0.0.1 then front-end should be at -> 127.0.0.1 NOT localhost
+# ! Issue: https://stackoverflow.com/questions/66205017/django-djoser-social-auth-state-could-not-be-found-in-server-side-session-dat
+# * Solution: https://stackoverflow.com/questions/57305141/react-django-rest-framework-session-is-not-persisting-working/57316231#57316231
+
+# * ---------------- Instruction 1 ---------------- *
+
+# * ---------------- Instruction 2 ---------------- *
+
+# ! 2. Getting Google profile picture from Google.
 # ! This can be done via over-riding as well. Tried but failed :(
 # * To get the User Profile Picture from Google:
 
 # * 1. Name / Rename the Picture Field in User / Account models -> 'picture'. It is important that name of the image field is 'picture' to automatically save the profile picture.
 
 # * 2. Go to the following file:
-# *     >>> env -> lib -> python3.11 -> site-packages -> social_core -> backends -> google.py
+# *     >>> env -> lib -> python3.xx -> site-packages -> social_core -> backends -> google.py
 
 # * 3. Go to the following method:
 # *     class BaseGoogleAuth -> def get_user_details()
@@ -272,6 +285,10 @@ SOCIAL_AUTH_USER_FIELDS = ["email", "first_name", "username", "password"]
 #    }
 
 # * Now the profile picture will be automatically set when user Sign-up/log-in.
+
+# * ---------------- Instruction 2 ---------------- *
+
+
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = (
     "117806175621-ui2j2s7v0vfm0uvbo6r59p4feh9a9b1m.apps.googleusercontent.com"
 )
