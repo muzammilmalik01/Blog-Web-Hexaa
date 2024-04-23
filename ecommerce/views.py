@@ -10,7 +10,7 @@ from .serializers import (
 from rest_framework import generics
 
 
-# Product Views #
+# Product Category Views #
 class Product_CategoryListCreateAPI(generics.ListCreateAPIView):
     """
     List and Create view using Generics.
@@ -21,6 +21,7 @@ class Product_CategoryListCreateAPI(generics.ListCreateAPIView):
 
     serializer_class = Product_CategorySerializer
     queryset = Product_Category.objects.all()
+    pagination_class = None
 
 
 class Product_CategoryUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -45,6 +46,7 @@ class ColorListCreateAPI(generics.ListCreateAPIView):
 
     serializer_class = ColorSerializer
     queryset = Color.objects.all()
+    pagination_class = None
 
 
 class ColorUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -72,6 +74,7 @@ class ProductListCreateAPI(generics.ListCreateAPIView):
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+    pagination_class = None
 
 
 class ProductUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -97,6 +100,7 @@ class ImageListCreateAPI(generics.ListCreateAPIView):
 
     serializer_class = ImageSerializer
     queryset = Image.objects.all()
+    pagination_class = None
 
 
 class ImageUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -113,6 +117,9 @@ class ImageUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 # Attribute Views
 class AttributeListCreateAPI(generics.ListCreateAPIView):
     """
+    TODO: Prevent addition of Multiple Same Attributes
+    TODO: GET Attributes using Post Slug
+
     List and Create view using Generics.
 
     GET list of all Attributes / Stock
@@ -121,6 +128,7 @@ class AttributeListCreateAPI(generics.ListCreateAPIView):
 
     serializer_class = AttributeSerializer
     queryset = Attribute.objects.all()
+    pagination_class = None
 
 
 class AttributeUpdateDelete(generics.RetrieveUpdateDestroyAPIView):

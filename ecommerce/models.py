@@ -24,17 +24,20 @@ class Product(models.Model):
     color = models.ForeignKey(Color, on_delete=models.PROTECT)
     slug = models.SlugField(unique=True)
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class Image(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    image = models.ImageField()
+    image = models.ImageField(upload_to="product_images/", null=False)
+    # TODO: Image Location Changed -> Test Apis
 
 
 class Attribute(models.Model):
     ATTRIBUTE_CHOICES = [
         ("Size", "Size"),
         ("Phone Model", "Phone Model"),
-        # Add other predefined attribute types here
     ]
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, choices=ATTRIBUTE_CHOICES)
