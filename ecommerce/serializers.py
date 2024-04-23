@@ -11,22 +11,22 @@ class Product_CategorySerializer(serializers.ModelSerializer):
 class ColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Color
-        field = "__all__"
+        fields = "__all__"
 
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        field = "__all__"
+        fields = "__all__"
 
 
 class AttributeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attribute
-        field = "__all__"
+        fields = "__all__"
 
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        field = "__all__"
+        fields = "__all__"
