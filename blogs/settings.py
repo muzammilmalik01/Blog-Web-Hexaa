@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "accounts",
     "category",
+    "ecommerce",
     "tag",
     "posts",
     "newsletter",

@@ -41,6 +41,7 @@ urlpatterns = [
     path(
         "premium/", CreateSubscriptionView.as_view(), name="create-premium-account"
     ),  # Get Premium Post Subscription
+    # path("shop/", include("ecommerce.urls")), #TODO: Ecommerce Store URLs
     # Simple-JWT APIs
     path("api/token/", TokenObtainPairView.as_view(), name="obtain-token"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh-token"),
