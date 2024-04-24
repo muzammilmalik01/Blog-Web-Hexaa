@@ -57,4 +57,31 @@ urlpatterns = [
         views.ImageUpdateDelete.as_view(),
         name="update-delete-image",
     ),
+    # Order URLs
+    path(
+        "order/",
+        views.OrderListCreateAPI.as_view(),
+        name="create-list-order",
+    ),
+    path(
+        "order-detail/<int:pk>",
+        views.OrderUpdateDeleteAPI.as_view(),
+        name="update-delete-order",
+    ),
+    # Order Item URLs
+    path(
+        "order-items/",
+        views.OrderItemListAPI.as_view(),
+        name="list-order",
+    ),
+    path(
+        "order-items-create/",
+        views.OrderCreateAPI.as_view(),
+        name="create-order",
+    ),
+    # path(
+    #     "order-item-detail/<int:pk>",
+    #     views.OrderUpdateDeleteAPI.as_view(),
+    #     name="update-delete-order",
+    # ),
 ]

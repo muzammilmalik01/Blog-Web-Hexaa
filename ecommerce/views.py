@@ -1,11 +1,13 @@
 from django.shortcuts import render
-from .models import Product_Category, Color, Product, Image, Attribute
+from .models import Product_Category, Color, Product, Image, Attribute, Order, OrderItem
 from .serializers import (
     Product_CategorySerializer,
     ColorSerializer,
     ProductSerializer,
     AttributeSerializer,
     ImageSerializer,
+    OrderItemSerializer,
+    OrderSerializer,
 )
 from rest_framework import generics
 
@@ -140,3 +142,71 @@ class AttributeUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = AttributeSerializer
     queryset = Attribute.objects.all()
+
+
+# TODO: Will have to make specialized views for Order and Order Item. Carefully have to manage stock of the products.
+# * Basic workflow how the order placing will work:
+# * 1. User clicks place order.
+# * 2. Order is posted with user ID and it would return Order NO (Order ID)
+# * 3. Returned order ID will be used to POST Order Items one by one
+# * 4. When all order items will be POSTED, Order will be PATCHED (complete -> True). This will make sure all the Order Item were Posted and Window was not closed.
+# * 5. Return the user with necesarry details after the order is successfully placed.
+# * 6. For payment, when all the Order Items are successfully posted, take the user to Payment Window.
+
+# * In detail POST Item:
+# * 1. When POST request is received, check if the Product Quantity >= Order Item Quantity
+# * 2. If Product Quantity >= Order Item Quantity, subtract the Product Quantity, set Order Total amount by += Order Item Subtotal, return 204
+
+
+class OrderListCreateAPI(generics.ListCreateAPIView):
+    """
+    List and Create view using Generics.
+
+    GET list of all Orders
+    POST new Orders
+    """
+
+    serializer_class = OrderSerializer
+    queryset = Order.objects.all()
+    pagination_class = None
+
+
+class OrderUpdateDeleteAPI(generics.RetrieveUpdateDestroyAPIView):
+    # TODO: Make same view but get the object via Customer username / ID
+    """
+    List and Create view using Generics.
+
+    GET, PUT, PATCH Order by PK
+    POST new Orders
+    """
+    serializer_class = OrderSerializer
+    queryset = Order.objects.all()
+    pagination_class = None
+
+
+# TODO: Have to make specialized views for Order Items according to React
+class OrderItemListAPI(generics.ListAPIView):
+    """
+    List view using Generics.
+
+    GET list of all Orders Items
+    """
+
+    serializer_class = OrderItemSerializer
+    queryset = OrderItem.objects.all()
+    pagination_class = None
+
+
+class OrderCreateAPI(generics.CreateAPIView):
+    """
+    Create view using Generics.
+
+    POST new Orders Items
+
+    * Uses Customer Order Item Serializer to properly place an order *
+    ! Thorough testing is required !
+    """
+
+    serializer_class = OrderItemSerializer
+    queryset = OrderItem.objects.all()
+    pagination_class = None
