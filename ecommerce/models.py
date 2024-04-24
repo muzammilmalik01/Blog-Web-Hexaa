@@ -23,7 +23,7 @@ class Product(models.Model):
     description = models.CharField(max_length=1000, null=True)
     details = models.CharField(max_length=2000, null=False)
     color = models.ForeignKey(Color, on_delete=models.PROTECT)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(blank=True, unique=True)
 
     def __str__(self) -> str:
         return self.name
@@ -39,6 +39,7 @@ class Attribute(models.Model):
     ATTRIBUTE_CHOICES = [
         ("Size", "Size"),
         ("Phone Model", "Phone Model"),
+        ("Material", "Material"),
     ]
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, choices=ATTRIBUTE_CHOICES)

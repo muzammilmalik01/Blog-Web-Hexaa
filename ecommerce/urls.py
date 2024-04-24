@@ -35,6 +35,11 @@ urlpatterns = [
         views.ProductUpdateDelete.as_view(),
         name="update-delete-products",
     ),
+    path(
+        "products-detail/<str:slug>/",
+        views.ProductUpdateDeletebySlug.as_view(),
+        name="update-delete-products-slug",
+    ),
     # Attribute URLs
     path(
         "attribute/",
@@ -51,6 +56,11 @@ urlpatterns = [
         "product-image/",
         views.ImageListCreateAPI.as_view(),
         name="create-list-image",
+    ),
+    path(
+        "product-images/<int:product_id>/",
+        views.ImageListAPIbyProduct.as_view(),
+        name="create-list-image-by-product-id",
     ),
     path(
         "product-image-detail/<int:pk>/",

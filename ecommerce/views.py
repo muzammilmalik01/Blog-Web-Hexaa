@@ -10,6 +10,18 @@ from .serializers import (
     OrderSerializer,
 )
 from rest_framework import generics
+from django.utils.text import slugify
+import uuid
+from django.shortcuts import get_object_or_404
+from django.http import Http404
+
+# ** How to populate Products:
+
+# * 1. Add Product Category
+# * 2. Add Color
+# * 3. Add Products
+# * 4. Add Images
+# * 5. Add Attributes (Size or Model, Available Stock)
 
 
 # Product Category Views #
@@ -78,6 +90,16 @@ class ProductListCreateAPI(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     pagination_class = None
 
+    def perform_create(self, serializer):
+        product_name = serializer.validated_data.get("name")
+        slug = slugify(product_name)
+        unique_id = str(uuid.uuid4())[:8]  # generates a unique ID
+
+        if Product.objects.filter(slug=slug).exists():
+            slug = f"{slug}-{unique_id}"
+
+        serializer.save(slug=slug)
+
 
 class ProductUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -88,6 +110,21 @@ class ProductUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+
+
+class ProductUpdateDeletebySlug(generics.RetrieveAPIView):
+    """
+    Retrieve, Update, Delete view using Generics.
+
+    GET, PUT, PATCH, DELETE Product using slug.
+    """
+
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
+
+    def get_object(self):
+        slug = self.kwargs.get("slug")
+        return get_object_or_404(Product, slug=slug)
 
 
 # Images Views #
@@ -103,6 +140,26 @@ class ImageListCreateAPI(generics.ListCreateAPIView):
     serializer_class = ImageSerializer
     queryset = Image.objects.all()
     pagination_class = None
+
+
+class ImageListAPIbyProduct(generics.ListAPIView):
+    """
+    List view using Generics.
+
+    GET list of all Images of a Product using Product ID
+    POST new Images
+    """
+
+    serializer_class = ImageSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        product_id = self.kwargs.get("product_id", None)
+        if product_id is not None:
+            if not Product.objects.filter(id=product_id).exists():
+                raise Http404("Product not found.")
+            return Image.objects.filter(product_id=product_id)
+        raise Http404("Product ID not provided.")
 
 
 class ImageUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
