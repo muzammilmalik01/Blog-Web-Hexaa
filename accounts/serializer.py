@@ -23,6 +23,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "last_name",
             "is_staff",
             "is_superuser",
+            "address",
+            "phone",
         )
 
 

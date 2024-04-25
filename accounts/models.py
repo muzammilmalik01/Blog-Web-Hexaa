@@ -18,6 +18,8 @@ class CustomUser(AbstractUser):
     is_superuser = models.BooleanField(default=False)  # Super Admin
     USERNAME_FIELD = "email"
     picture = models.ImageField(upload_to="profile_pictures/", null=True, blank=True)
+    address = models.CharField(max_length=1000, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
     REQUIRED_FIELDS = [
         "first_name",
         "last_name",
