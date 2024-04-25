@@ -14,14 +14,17 @@ from django.utils.text import slugify
 import uuid
 from django.shortcuts import get_object_or_404
 from django.http import Http404
+from .permissions import OrderPermission, ProductPermissions
 
-# ** How to populate Products:
+# * How to populate Products:
 
 # * 1. Add Product Category
 # * 2. Add Color
 # * 3. Add Products
 # * 4. Add Images
 # * 5. Add Attributes (Size or Model, Available Stock)
+
+# ! Permission are commented out (disabled)
 
 
 # Product Category Views #
@@ -36,6 +39,7 @@ class Product_CategoryListCreateAPI(generics.ListCreateAPIView):
     serializer_class = Product_CategorySerializer
     queryset = Product_Category.objects.all()
     pagination_class = None
+    # permission_classes = [ProductPermissions]
 
 
 class Product_CategoryUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -47,6 +51,7 @@ class Product_CategoryUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = Product_CategorySerializer
     queryset = Product_Category.objects.all()
+    # permission_classes = [ProductPermissions]
 
 
 # Color Views #
@@ -61,6 +66,7 @@ class ColorListCreateAPI(generics.ListCreateAPIView):
     serializer_class = ColorSerializer
     queryset = Color.objects.all()
     pagination_class = None
+    # permission_classes = [ProductPermissions]
 
 
 class ColorUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -72,13 +78,12 @@ class ColorUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = ColorSerializer
     queryset = Color.objects.all()
+    # permission_classes = [ProductPermissions]
 
 
 # Product Views #
-# TODO: Add Retrieve, Update, Delete Product View using Slug
 class ProductListCreateAPI(generics.ListCreateAPIView):
     """
-    TODO: Add Product Slug on save()
 
     List and Create view using Generics.
 
@@ -89,6 +94,7 @@ class ProductListCreateAPI(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
     pagination_class = None
+    # permission_classes = [ProductPermissions]
 
     def perform_create(self, serializer):
         product_name = serializer.validated_data.get("name")
@@ -110,6 +116,7 @@ class ProductUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+    # permission_classes = [ProductPermissions]
 
 
 class ProductUpdateDeletebySlug(generics.RetrieveAPIView):
@@ -121,6 +128,7 @@ class ProductUpdateDeletebySlug(generics.RetrieveAPIView):
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+    # permission_classes = [ProductPermissions]
 
     def get_object(self):
         slug = self.kwargs.get("slug")
@@ -128,7 +136,6 @@ class ProductUpdateDeletebySlug(generics.RetrieveAPIView):
 
 
 # Images Views #
-# TODO: Added view which gets images based on Product's Slug / PK
 class ImageListCreateAPI(generics.ListCreateAPIView):
     """
     List and Create view using Generics.
@@ -140,6 +147,7 @@ class ImageListCreateAPI(generics.ListCreateAPIView):
     serializer_class = ImageSerializer
     queryset = Image.objects.all()
     pagination_class = None
+    # permission_classes = [ProductPermissions]
 
 
 class ImageListAPIbyProduct(generics.ListAPIView):
@@ -152,6 +160,7 @@ class ImageListAPIbyProduct(generics.ListAPIView):
 
     serializer_class = ImageSerializer
     pagination_class = None
+    # permission_classes = [ProductPermissions]
 
     def get_queryset(self):
         product_id = self.kwargs.get("product_id", None)
@@ -171,6 +180,7 @@ class ImageUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = ImageSerializer
     queryset = Image.objects.all()
+    # permission_classes = [ProductPermissions]
 
 
 # Attribute Views
@@ -188,6 +198,7 @@ class AttributeListCreateAPI(generics.ListCreateAPIView):
     serializer_class = AttributeSerializer
     queryset = Attribute.objects.all()
     pagination_class = None
+    # permission_classes = [ProductPermissions]
 
 
 class AttributeUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -199,16 +210,18 @@ class AttributeUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = AttributeSerializer
     queryset = Attribute.objects.all()
+    # permission_classes = [ProductPermissions]
 
 
-# TODO: Will have to make specialized views for Order and Order Item. Carefully have to manage stock of the products.
-# * Basic workflow how the order placing will work:
-# * 1. User clicks place order.
-# * 2. Order is posted with user ID and it would return Order NO (Order ID)
+# * Basic workflow how the order placing will work on Front-End:
+
+# * 1. User selects different products, adds to cart and clicks place order.
+# * 2. Order is created with user ID and it would return Order NO (Order ID)
 # * 3. Returned order ID will be used to POST Order Items one by one
 # * 4. When all order items will be POSTED, Order will be PATCHED (complete -> True). This will make sure all the Order Item were Posted and Window was not closed.
 # * 5. Return the user with necesarry details after the order is successfully placed.
 # * 6. For payment, when all the Order Items are successfully posted, take the user to Payment Window.
+# ! Payment Model or workflow not implemented - Stripe is integrated.
 
 # * In detail POST Item:
 # * 1. When POST request is received, check if the Product Quantity >= Order Item Quantity
@@ -226,6 +239,7 @@ class OrderListCreateAPI(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
     pagination_class = None
+    # permission_classes = [OrderPermission]
 
 
 class OrderUpdateDeleteAPI(generics.RetrieveUpdateDestroyAPIView):
@@ -234,11 +248,11 @@ class OrderUpdateDeleteAPI(generics.RetrieveUpdateDestroyAPIView):
     List and Create view using Generics.
 
     GET, PUT, PATCH Order by PK
-    POST new Orders
     """
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
     pagination_class = None
+    # permission_classes = [OrderPermission]
 
 
 # TODO: Have to make specialized views for Order Items according to React
@@ -252,9 +266,10 @@ class OrderItemListAPI(generics.ListAPIView):
     serializer_class = OrderItemSerializer
     queryset = OrderItem.objects.all()
     pagination_class = None
+    # permission_classes = [OrderPermission]
 
 
-class OrderCreateAPI(generics.CreateAPIView):
+class OrderItemCreateAPI(generics.CreateAPIView):
     """
     Create view using Generics.
 
@@ -267,3 +282,17 @@ class OrderCreateAPI(generics.CreateAPIView):
     serializer_class = OrderItemSerializer
     queryset = OrderItem.objects.all()
     pagination_class = None
+    # permission_classes = [OrderPermission]
+
+
+class OrderItemUpdateDeleteAPI(generics.RetrieveUpdateDestroyAPIView):
+    """
+    RetrieveUpdateDelete view using Generics.
+
+    GET, PUT, PATCH, DELETE Orders Items by ID
+    """
+
+    serializer_class = OrderItemSerializer
+    queryset = OrderItem.objects.all()
+    pagination_class = None
+    # permission_classes = [OrderPermission]

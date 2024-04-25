@@ -86,12 +86,12 @@ urlpatterns = [
     ),
     path(
         "order-items-create/",
-        views.OrderCreateAPI.as_view(),
+        views.OrderItemCreateAPI.as_view(),
         name="create-order",
     ),
-    # path(
-    #     "order-item-detail/<int:pk>",
-    #     views.OrderUpdateDeleteAPI.as_view(),
-    #     name="update-delete-order",
-    # ),
+    path(
+        "order-item-detail/<int:pk>",
+        views.OrderItemUpdateDeleteAPI.as_view(),
+        name="update-delete-order",
+    ),
 ]
