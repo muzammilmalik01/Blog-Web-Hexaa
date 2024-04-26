@@ -310,16 +310,16 @@ class OrderItemUpdateDeleteAPI(generics.RetrieveUpdateDestroyAPIView):
 @api_view(["POST"])
 def create_payment_intent(request):
     """
-    The POST will request will receive:
-    - "total_amount" -> Total Amount to be charged by the user.
-    - "order_id" -> Order ID again which Payment is going to be received.
+    Create a payment intent for a given order.
 
-    Workflow:
-    1. Get Order by Order ID, Customer from Order.
-    2. Check if the customer already exists in Stripe.
-    3. If yes -> Set Customer ID
-    4. Else create a new Customer in Stripe
-    5. Create Payment Intent and Return it.
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        JsonResponse: A JSON response containing the client secret of the payment intent.
+
+    Raises:
+        Exception: If there is an error creating the payment intent.
 
     """
     total_amount = request.data.get("total_amount")
@@ -329,18 +329,20 @@ def create_payment_intent(request):
     customer_email = order.customer.email
 
     try:
+        # check if user with this email already exists at Stripe
         existing_customer = stripe.Customer.list(email=customer_email, limit=1).data
-        print(existing_customer)
         if existing_customer and len(existing_customer) > 0:
             # Customer already exists, return the existing customer ID
             customer_id = existing_customer[0].id
         else:
+            # New Customer -> Create a new customer at Stripe
             new_customer = stripe.Customer.create(
                 email=customer_email,
                 name=customer_name,
-                description="Test Create User customer by API",
+                description="Customer Created by Django Backend",
             )
             customer_id = new_customer.id
+        # Create new PaymentIntent at Stripe
         intent = stripe.PaymentIntent.create(
             amount=total_amount,
             currency="usd",
@@ -350,8 +352,11 @@ def create_payment_intent(request):
                 "customer_email": customer_email,  # Customer's email as metadata
                 "order_id": order_id,
             },
-            # metadata={'order_id': order_id},  # Optional: Attach order ID as metadata
         )
-        return JsonResponse({"client_secret": intent.client_secret})
+        order.payment_intent = intent.client_secret
+        order.save()  # Save PaymentIntent in Order
+        return JsonResponse(
+            {"client_secret": intent.client_secret}
+        )  # returning Payment Intent
     except Exception as e:
         return Response({"error": str(e)}, status=400)

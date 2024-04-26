@@ -57,13 +57,24 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     complete = models.BooleanField(default=False)
     STATUS_CHOICES = [
-        ("Pending", "Pending"),
-        ("Confirmed", "Confirmed"),
-        ("Dispatched", "Dispatched"),
-        ("Delivered", "Delivered"),
-        ("Cancelled", "Cancelled"),
+        ("Pending", "pending"),
+        ("Confirmed", "confirmed"),
+        ("Dispatched", "dispatched"),
+        ("Delivered", "delivered"),
+        ("Cancelled", "cancelled"),
     ]
     status = models.CharField(default="Pending", max_length=255, choices=STATUS_CHOICES)
+    PAYMENT_CHOICES = [
+        ("online", "online"),
+        ("cod", "cod"),
+    ]
+    payment_mode = models.CharField(
+        default="cod", null=False, choices=PAYMENT_CHOICES, max_length=255
+    )
+    is_paid = models.BooleanField(default=False, blank=False, null=False)
+    payment_intent = models.CharField(
+        max_length=2000, default=None, blank=True, null=True
+    )
 
     def __str__(self) -> str:
         return f"Order {self.id} by Customer {self.customer}"
