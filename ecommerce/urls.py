@@ -94,4 +94,5 @@ urlpatterns = [
         views.OrderItemUpdateDeleteAPI.as_view(),
         name="update-delete-order",
     ),
+    path("payment/", views.create_payment_intent, name="payment-intent"),
 ]

@@ -15,6 +15,13 @@ import uuid
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from .permissions import OrderPermission, ProductPermissions
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.http import JsonResponse
+import stripe
+from django.conf import settings
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # * How to populate Products:
 
@@ -222,6 +229,8 @@ class AttributeUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 # * 5. Return the user with necesarry details after the order is successfully placed.
 # * 6. For payment, when all the Order Items are successfully posted, take the user to Payment Window.
 # ! Payment Model or workflow not implemented - Stripe is integrated.
+# * 7. When the Order has been successfully placed, a new payment will be created
+# * 8.
 
 # * In detail POST Item:
 # * 1. When POST request is received, check if the Product Quantity >= Order Item Quantity
@@ -296,3 +305,53 @@ class OrderItemUpdateDeleteAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = OrderItem.objects.all()
     pagination_class = None
     # permission_classes = [OrderPermission]
+
+
+@api_view(["POST"])
+def create_payment_intent(request):
+    """
+    The POST will request will receive:
+    - "total_amount" -> Total Amount to be charged by the user.
+    - "order_id" -> Order ID again which Payment is going to be received.
+
+    Workflow:
+    1. Get Order by Order ID, Customer from Order.
+    2. Check if the customer already exists in Stripe.
+    3. If yes -> Set Customer ID
+    4. Else create a new Customer in Stripe
+    5. Create Payment Intent and Return it.
+
+    """
+    total_amount = request.data.get("total_amount")
+    order_id = request.data.get("order_id")
+    order = Order.objects.get(id=order_id)
+    customer_name = f"{order.customer.first_name} {order.customer.last_name}"
+    customer_email = order.customer.email
+
+    try:
+        existing_customer = stripe.Customer.list(email=customer_email, limit=1).data
+        print(existing_customer)
+        if existing_customer and len(existing_customer) > 0:
+            # Customer already exists, return the existing customer ID
+            customer_id = existing_customer[0].id
+        else:
+            new_customer = stripe.Customer.create(
+                email=customer_email,
+                name=customer_name,
+                description="Test Create User customer by API",
+            )
+            customer_id = new_customer.id
+        intent = stripe.PaymentIntent.create(
+            amount=total_amount,
+            currency="usd",
+            customer=customer_id,
+            metadata={
+                "customer_name": customer_name,  # Customer's name as metadata
+                "customer_email": customer_email,  # Customer's email as metadata
+                "order_id": order_id,
+            },
+            # metadata={'order_id': order_id},  # Optional: Attach order ID as metadata
+        )
+        return JsonResponse({"client_secret": intent.client_secret})
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
