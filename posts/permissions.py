@@ -21,8 +21,10 @@ class PostPermissions(permissions.BasePermission):
         """
         if request.method in permissions.SAFE_METHODS:
             return True
+        elif request.method == "PUT" or request.method == "PATCH":
+            return request.user.is_superuser or request.user.is_staff
         else:
-            return request.user.is_staff or request.user.is_superuser
+            return request.user.is_superuser
 
 
 class CommentPermissions(permissions.BasePermission):
