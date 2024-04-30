@@ -28,6 +28,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 import uuid
+from django.core.cache import cache
 
 
 # ! PERMISSIONS NOT YET APPLIED !
@@ -316,11 +317,23 @@ class GetFeaturedPosts(
     Getting all Featured posts by field 'is_featured' = True.
 
     * Scheduling enabled *
+    * Cache Enabled *
+    NOTE: Cache will only invalidate after a certain time. While post creation, Feature Post cache needs to be invalidated.
     """
 
     queryset = Post.objects.filter(is_featured=True)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
+
+    def get_queryset(self):
+        page = self.request.query_params.get("page", 1)
+        cache_key = f"featured_post_page_{page}"
+        query_set = cache.get(cache_key)
+
+        if query_set is None:
+            query_set = super().get_queryset()
+            cache.set(cache_key, query_set, 6 * 10)
+        return query_set
 
 
 class GetTopPosts(ScheduledPostPremiumUserMixin, PaginationMixin, generics.ListAPIView):
@@ -362,6 +375,11 @@ class GetTrendingPosts(
     ! Issue 1: This method will cause performance issues if there are to many posts !
     TODO: For now, Trending Published Posts are being processed but will have to work for an efficient solution.
     * Scheduling enabled *
+
+    * Caching Enabled *
+    ! Issue 2: Caching is enabled per pages, working perfectly but might cause an for stale data.
+    ! Example: If Page 1 is loaded at 10:00 and Page 2 is loaded at 10:05, engagement score might be changed
+    * Time reduces from 900+ ms to < 50ms *
     """
 
     serializer_class = PostSerializer
@@ -369,8 +387,20 @@ class GetTrendingPosts(
     permission_classes = [PostPermissions]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = sorted(queryset, key=lambda obj: obj.get_eng_score(), reverse=True)
+        page = self.request.query_params.get("page", 1)
+        cache_key = f"trending_post_page_{page}"
+        queryset = cache.get(cache_key)
+
+        if queryset is None:
+            queryset = super().get_queryset()
+            queryset = sorted(
+                queryset, key=lambda obj: obj.get_eng_score(), reverse=True
+            )
+            cache.set(
+                f"trending_post_page_{page}", queryset, 60 * 10
+            )  # Set the queryset in the cache
+            # return queryset
+
         return queryset
 
 

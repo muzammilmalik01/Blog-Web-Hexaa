@@ -257,11 +257,12 @@ class PostSerializer(serializers.ModelSerializer):
         # Gettings all Posts Metrics.
         total_likes = Like.objects.filter(post=obj).count()
         total_comments = Comment.objects.filter(post=obj).count()
-        total_views = obj.views
+        total_views = (
+            obj.views if obj.views is not None else 0
+        )  # provide a default value of 0
         post_date = obj.posted_at
         current_date = timezone.now()
 
-        total_views = total_views if total_views is not None else 0
         total_likes = total_likes if total_likes is not None else 0
         total_comments = total_comments if total_comments is not None else 0
 
