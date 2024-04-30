@@ -35,7 +35,7 @@ class Post(models.Model):
     is_featured = models.BooleanField(default=False)
     is_top_post = models.BooleanField(default=False)
     is_premium_post = models.BooleanField(default=False)
-    views = models.PositiveBigIntegerField(default=0, blank=True, null=True)
+    views = models.PositiveBigIntegerField(default=0)
     posted_at = models.DateTimeField(blank=True, null=True)
     post_image = models.ImageField(upload_to="posts/", null=True, blank=True)
 
@@ -59,7 +59,7 @@ class Post(models.Model):
         # Gettings all Posts Metrics.
         total_likes = Like.objects.filter(post=self).count()
         total_comments = Comment.objects.filter(post=self).count()
-        total_views = self.views
+        total_views = self.views if self.views is not None else 0
         post_date = self.posted_at
         current_date = timezone.now()
 

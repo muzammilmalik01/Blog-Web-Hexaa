@@ -27,6 +27,8 @@ import stripe
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+import uuid
+from django.core.cache import cache
 
 
 # ! PERMISSIONS NOT YET APPLIED !
@@ -125,13 +127,19 @@ class CreatePostAPI(generics.CreateAPIView):
         Gets 'post_slug' from the post data.
 
         If 'post_slug' is an empty String (Blank), it will automatically create a slug for the post based on the title.
+
+        If 'post_slug' already exists for some other post (same title) then append a UUID with new post
         """
-        slug_blank = serializer.validated_data.get("post_slug")  # get the slug.
-        if slug_blank == "":  # if slug == empty string (blank)
-            #! BUG: If the title is same for 2 posts, it will cause an error while saving the record, as it is set to be Unique Field in the models.
-            raw_slug = serializer.validated_data.get("post_title")  # get post_title
-            slug = slugify(raw_slug)  # create the new slug
-            serializer.save(post_slug=slug)  # save record to DB.
+        slug_blank = serializer.validated_data.get("post_slug")
+        if slug_blank == "":
+            raw_slug = serializer.validated_data.get("post_title")
+            slug = slugify(raw_slug)
+            if Post.objects.filter(
+                post_slug=slug
+            ).exists():  # If a post with same slug exists
+                unique_id = str(uuid.uuid4())[:8]  # generates a unique ID
+                slug = f"{slug}-{unique_id}"  # append unique_id with it
+            serializer.save(post_slug=slug)
 
         else:
             serializer.save()  # else, simply save it.
@@ -309,11 +317,23 @@ class GetFeaturedPosts(
     Getting all Featured posts by field 'is_featured' = True.
 
     * Scheduling enabled *
+    * Cache Enabled *
+    NOTE: Cache will only invalidate after a certain time. While post creation, Feature Post cache needs to be invalidated.
     """
 
     queryset = Post.objects.filter(is_featured=True)
     serializer_class = PostSerializer
     permission_classes = [PostPermissions]
+
+    def get_queryset(self):
+        page = self.request.query_params.get("page", 1)
+        cache_key = f"featured_post_page_{page}"
+        query_set = cache.get(cache_key)
+
+        if query_set is None:
+            query_set = super().get_queryset()
+            cache.set(cache_key, query_set, 6 * 10)
+        return query_set
 
 
 class GetTopPosts(ScheduledPostPremiumUserMixin, PaginationMixin, generics.ListAPIView):
@@ -355,6 +375,11 @@ class GetTrendingPosts(
     ! Issue 1: This method will cause performance issues if there are to many posts !
     TODO: For now, Trending Published Posts are being processed but will have to work for an efficient solution.
     * Scheduling enabled *
+
+    * Caching Enabled *
+    ! Issue 2: Caching is enabled per pages, working perfectly but might cause an for stale data.
+    ! Example: If Page 1 is loaded at 10:00 and Page 2 is loaded at 10:05, engagement score might be changed
+    * Time reduces from 900+ ms to < 50ms *
     """
 
     serializer_class = PostSerializer
@@ -362,8 +387,20 @@ class GetTrendingPosts(
     permission_classes = [PostPermissions]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = sorted(queryset, key=lambda obj: obj.get_eng_score(), reverse=True)
+        page = self.request.query_params.get("page", 1)
+        cache_key = f"trending_post_page_{page}"
+        queryset = cache.get(cache_key)
+
+        if queryset is None:
+            queryset = super().get_queryset()
+            queryset = sorted(
+                queryset, key=lambda obj: obj.get_eng_score(), reverse=True
+            )
+            cache.set(
+                f"trending_post_page_{page}", queryset, 60 * 10
+            )  # Set the queryset in the cache
+            # return queryset
+
         return queryset
 
 
