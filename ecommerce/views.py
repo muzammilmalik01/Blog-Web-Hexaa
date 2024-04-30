@@ -20,6 +20,7 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 import stripe
 from django.conf import settings
+from django.core.cache import cache
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -48,6 +49,25 @@ class Product_CategoryListCreateAPI(generics.ListCreateAPIView):
     pagination_class = None
     # permission_classes = [ProductPermissions]
 
+    def get(self, request, *args, **kwargs):
+        """
+        Overriding GET method to return Cached Data if exists, else create cache.
+        """
+        data = cache.get("product_category_list")
+        if data is None:
+            response = super().get(request, *args, **kwargs)
+            data = response
+            cache.set("product_category_list", data, 60 * 10)  # cache for 10 minutes
+        return Response(data)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Overriding POST method to delete cached data, keeps the data updated.
+        """
+        response = super().post(request, *args, **kwargs)
+        cache.delete("product_category_list")
+        return response
+
 
 class Product_CategoryUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -59,6 +79,22 @@ class Product_CategoryUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = Product_CategorySerializer
     queryset = Product_Category.objects.all()
     # permission_classes = [ProductPermissions]
+
+    def put(self, request, *args, **kwargs):
+        pk = kwargs["pk"]
+        cache_key = f"product_category_{pk}"
+        cache.delete(cache_key)
+        cache_key = "product_category_list"
+        cache.delete(cache_key)
+        return super().put(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs["pk"]
+        cache_key = f"product_category_{pk}"
+        cache.delete(cache_key)
+        cache_key = "product_category_list"
+        cache.delete(cache_key)
+        return super().put(request, *args, **kwargs)
 
 
 # Color Views #
@@ -103,15 +139,31 @@ class ProductListCreateAPI(generics.ListCreateAPIView):
     pagination_class = None
     # permission_classes = [ProductPermissions]
 
+    def get(self, request, *args, **kwargs):
+        """
+        Overriding GET method to return Cached List of objects if exists, else create one
+        """
+        data = cache.get("products_list")
+
+        if data is None:
+            response = super().get(request, *args, **kwargs)
+            data = response.data
+            cache.set("products_list", data, 60 * 10)
+        return Response(data)
+
     def perform_create(self, serializer):
+        """
+        Overriding perform_create() to handle slug and delete cache to keep the data updated.
+        """
         product_name = serializer.validated_data.get("name")
         slug = slugify(product_name)
-        unique_id = str(uuid.uuid4())[:8]  # generates a unique ID
+        unique_id = str(uuid.uuid4())[:8]
 
         if Product.objects.filter(slug=slug).exists():
             slug = f"{slug}-{unique_id}"
 
         serializer.save(slug=slug)
+        cache.delete("products_list")
 
 
 class ProductUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -124,6 +176,29 @@ class ProductUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
     # permission_classes = [ProductPermissions]
+
+    def put(self, request, *args, **kwargs):
+        """
+        Overiding PUT method to delete cache.
+        """
+        product_id = kwargs["pk"]
+        product = Product.objects.get(id=product_id)
+        print(f"Product: {product}")
+        product_slug = product.slug
+        cache.delete(f"product_{product_slug}")
+        cache.delete(f"products_list")
+        return super().put(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Overiding DELETE method to delete cache.
+        """
+        product_id = kwargs["pk"]
+        product = Product.objects.get(id=product_id)
+        product_slug = product.slug
+        cache.delete(f"product_{product_slug}")
+        cache.delete(f"products_list")
+        return super().put(request, *args, **kwargs)
 
 
 class ProductUpdateDeletebySlug(generics.RetrieveAPIView):
@@ -139,7 +214,16 @@ class ProductUpdateDeletebySlug(generics.RetrieveAPIView):
 
     def get_object(self):
         slug = self.kwargs.get("slug")
-        return get_object_or_404(Product, slug=slug)
+        cache_key = f"product_{slug}"
+        product = cache.get(cache_key)
+
+        if product is None:
+            try:
+                product = Product.objects.get(slug=slug)
+                cache.set(cache_key, product)
+            except Product.DoesNotExist:
+                raise Http404("Product does not exist")
+        return product
 
 
 # Images Views #
