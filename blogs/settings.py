@@ -312,7 +312,7 @@ SOCIAL_AUTH_UPDATE_USER_DETAILS_ON_LOGIN = (
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Storing at DB1
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
