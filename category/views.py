@@ -21,7 +21,7 @@ class CategoryCreate(generics.ListCreateAPIView):
         if data is None:
             response = super().get(request, *args, **kwargs)
             data = response.data
-            cache.set("post_categories_list", data, 60 * 3)  # Cache for 3 minutes
+            cache.set("post_categories_list", data, 60 * 10)  # Cache for 3 minutes
         return Response(data)
 
     def post(self, request, *args, **kwargs):
@@ -51,7 +51,7 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
         if data is None:
             response = super().get(request, *args, **kwargs)
             data = response.data
-            cache.set(cache_key, data, 60 * 3)
+            cache.set(cache_key, data, 60 * 10)
         return Response(data)
 
     def put(self, request, *args, **kwargs):
