@@ -1,9 +1,12 @@
 from pathlib import Path
 from datetime import timedelta
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # config = Config()
 
@@ -11,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-6p-p9k0bm$)i$)_fl@7lz@os5pko$9oqs#$@#thf(3+a%gggcb"
+SECRET_KEY = os.getenv("SECRET_KEY",default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -201,16 +204,25 @@ DJOSER = {
     ],
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "sandbox.smtp.mailtrap.io"
-EMAIL_PORT = 2525
-EMAIL_HOST_USER = "11ffa5b86660f3"
-EMAIL_HOST_PASSWORD = "9d3e6aa29c6fd5"
-EMAIL_USE_TLS = True
+# # Email Configuration
 
-#! Stripe Keys #
-STRIPE_PUBLIC_KEY = "pk_test_51OqrmrLbIWA3Cm6EUlep55uU6A3DDyydbTr1xWcUNEjIC6G0gE0JQCMllEt1XgaGqetUd09PxFMay1gLy0G1ARvV00g1rTRxY4"
-STRIPE_SECRET_KEY = "sk_test_51OqrmrLbIWA3Cm6EYV1nxcUneeCOL2Zh0XAW1AbevXjrJ52yVSoGa7OoU27fsssJHnf3B0cCSVfkiQKtuXlsTpkT00H0NqVxZY"
+EMAIL_BACKEND=os.getenv("EMAIL_BACKEND", default="")
+EMAIL_HOST = os.getenv("EMAIL_HOST", default="")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", default=0))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = bool(os.getenv("EMAIL_USE_TLS", default=""))
+
+# EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST='sandbox.smtp.mailtrap.io'
+# EMAIL_PORT=2525
+# EMAIL_HOST_USER='11ffa5b86660f3'
+# EMAIL_HOST_PASSWORD='9d3e6aa29c6fd5'
+# EMAIL_USE_TLS=True
+
+# Stripe Keys
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY", default="")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", default="")
 
 # To allow all origins
 CORS_ALLOW_ALL_ORIGINS = True
@@ -291,9 +303,9 @@ SOCIAL_AUTH_USER_FIELDS = ["email", "first_name", "username", "password"]
 
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = (
-    "117806175621-ui2j2s7v0vfm0uvbo6r59p4feh9a9b1m.apps.googleusercontent.com"
+    os.getenv("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
 )
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
