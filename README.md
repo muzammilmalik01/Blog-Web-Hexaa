@@ -74,6 +74,20 @@ Blog-Web-Hexaa is a feature-rich blogging platform that supports user authentica
 - **drf-yasg**: For API documentation with Swagger.
 
 ---
+## Screenshots
+### Django Admin Panel
+*Default Admin Panel*
+![Admin Panel](images/DJango-Admin-Panel.png)
+
+### Swagger API Documentation
+*Documentation with Swagger*
+![Admin Panel](images/Swagger-Documentation.png)
+
+### Redocly API Documentation
+*Documentation with Redocly*
+![Admin Panel](images/Redocly-Documentation.png)
+
+---
 
 ## Installation
 

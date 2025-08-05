@@ -213,13 +213,6 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = bool(os.getenv("EMAIL_USE_TLS", default=""))
 
-# EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST='sandbox.smtp.mailtrap.io'
-# EMAIL_PORT=2525
-# EMAIL_HOST_USER='11ffa5b86660f3'
-# EMAIL_HOST_PASSWORD='9d3e6aa29c6fd5'
-# EMAIL_USE_TLS=True
-
 # Stripe Keys
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY", default="")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", default="")
