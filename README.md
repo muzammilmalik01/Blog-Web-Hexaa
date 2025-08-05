@@ -99,7 +99,7 @@ Blog-Web-Hexaa is a feature-rich blogging platform that supports user authentica
 ### Steps
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/Blog-Web-Hexaa.git
+   git clone https://github.com/muzammilmalik01/Blog-Web-Hexaa.git
    cd Blog-Web-Hexaa
    ```
 2. **Set Up Virtual Environment**
